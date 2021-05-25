@@ -23,9 +23,7 @@ Pod Autoscaling does not apply to objects that can't be scaled, for example, Dae
 
 The Horizontal Pod Autoscaler is implemented as a Kubernetes API resource and a controller.
 The resource determines the behavior of the controller.
-The controller periodically adjusts the number of replicas in a replication controller or deployment
-to match the observed average CPU utilization to the target specified by user.
-
+The controller periodically adjusts the number of replicas in a replication controller or deployment to match the observed metrics such as average CPU utilisation, average memory utilisation or any other custom metric to the target specified by the user.
 
 
 
@@ -162,7 +160,7 @@ can be fetched, scaling is skipped. This means that the HPA is still capable
 of scaling up if one or more metrics give a `desiredReplicas` greater than
 the current value.
 
-Finally, just before HPA scales the target, the scale recommendation is recorded.  The
+Finally, right before HPA scales the target, the scale recommendation is recorded.  The
 controller considers all recommendations within a configurable window choosing the
 highest recommendation from within that window. This value can be configured using the `--horizontal-pod-autoscaler-downscale-stabilization` flag, which defaults to 5 minutes.
 This means that scaledowns will occur gradually, smoothing out the impact of rapidly
@@ -191,7 +189,7 @@ We can create a new autoscaler using `kubectl create` command.
 We can list autoscalers by `kubectl get hpa` and get detailed description by `kubectl describe hpa`.
 Finally, we can delete an autoscaler using `kubectl delete hpa`.
 
-In addition, there is a special `kubectl autoscale` command for easy creation of a Horizontal Pod Autoscaler.
+In addition, there is a special `kubectl autoscale` command for creating a HorizontalPodAutoscaler object.
 For instance, executing `kubectl autoscale rs foo --min=2 --max=5 --cpu-percent=80`
 will create an autoscaler for replication set *foo*, with target CPU utilization set to `80%`
 and the number of replicas between 2 and 5.
@@ -221,9 +219,9 @@ the global HPA settings exposed as flags for the `kube-controller-manager` compo
 Starting from v1.12, a new algorithmic update removes the need for the
 upscale delay.
 
-- `--horizontal-pod-autoscaler-downscale-stabilization`: The value for this option is a
-  duration that specifies how long the autoscaler has to wait before another
-  downscale operation can be performed after the current one has completed.
+- `--horizontal-pod-autoscaler-downscale-stabilization`: Specifies the duration of the
+  downscale stabilization time window. Horizontal Pod Autoscaler remembers
+  the historical recommended sizes and only acts on the largest size within this time window.
   The default value is 5 minutes (`5m0s`).
 
 {{< note >}}
@@ -232,6 +230,75 @@ consequences. If the delay (cooldown) value is set too long, there could be comp
 that the Horizontal Pod Autoscaler is not responsive to workload changes. However, if
 the delay value is set too short, the scale of the replicas set may keep thrashing as
 usual.
+{{< /note >}}
+
+## Support for resource metrics
+
+Any HPA target can be scaled based on the resource usage of the pods in the scaling target.
+When defining the pod specification the resource requests like `cpu` and `memory` should
+be specified. This is used to determine the resource utilization and used by the HPA controller
+to scale the target up or down. To use resource utilization based scaling specify a metric source
+like this:
+
+```yaml
+type: Resource
+resource:
+  name: cpu
+  target:
+    type: Utilization
+    averageUtilization: 60
+```
+With this metric the HPA controller will keep the average utilization of the pods in the scaling
+target at 60%. Utilization is the ratio between the current usage of resource to the requested
+resources of the pod. See [Algorithm](#algorithm-details) for more details about how the utilization
+is calculated and averaged.
+
+{{< note >}}
+Since the resource usages of all the containers are summed up the total pod utilization may not
+accurately represent the individual container resource usage. This could lead to situations where
+a single container might be running with high usage and the HPA will not scale out because the overall
+pod usage is still within acceptable limits.
+{{< /note >}}
+
+### Container Resource Metrics
+
+{{< feature-state for_k8s_version="v1.20" state="alpha" >}}
+
+`HorizontalPodAutoscaler` also supports a container metric source where the HPA can track the
+resource usage of individual containers across a set of Pods, in order to scale the target resource.
+This lets you configure scaling thresholds for the containers that matter most in a particular Pod.
+For example, if you have a web application and a logging sidecar, you can scale based on the resource
+use of the web application, ignoring the sidecar container and its resource use.
+
+If you revise the target resource to have a new Pod specification with a different set of containers,
+you should revise the HPA spec if that newly added container should also be used for
+scaling. If the specified container in the metric source is not present or only present in a subset
+of the pods then those pods are ignored and the recommendation is recalculated. See [Algorithm](#algorithm-details)
+for more details about the calculation. To use container resources for autoscaling define a metric
+source as follows:
+```yaml
+type: ContainerResource
+containerResource:
+  name: cpu
+  container: application
+  target:
+    type: Utilization
+    averageUtilization: 60
+```
+
+In the above example the HPA controller scales the target such that the average utilization of the cpu
+in the `application` container of all the pods is 60%.
+
+{{< note >}}
+If you change the name of a container that a HorizontalPodAutoscaler is tracking, you can
+make that change in a specific order to ensure scaling remains available and effective
+whilst the change is being applied. Before you update the resource that defines the container
+(such as a Deployment), you should update the associated HPA to track both the new and
+old container names. This way, the HPA is able to calculate a scaling recommendation
+throughout the update process.
+
+Once you have rolled out the container name change to the workload resource, tidy up by removing
+the old container name from the HPA specification.
 {{< /note >}}
 
 ## Support for multiple metrics
@@ -287,7 +354,7 @@ and [the walkthrough for using external metrics](/docs/tasks/run-application/hor
 ## Support for configurable scaling behavior
 
 Starting from
-[v1.18](https://github.com/kubernetes/enhancements/blob/master/keps/sig-autoscaling/20190307-configurable-scale-velocity-for-hpa.md)
+[v1.18](https://github.com/kubernetes/enhancements/blob/master/keps/sig-autoscaling/853-configurable-hpa-scale-velocity/README.md)
 the `v2beta2` API allows scaling behavior to be configured through the HPA
 `behavior` field. Behaviors are specified separately for scaling up and down in
 `scaleUp` or `scaleDown` section under the `behavior` field. A stabilization
@@ -314,17 +381,18 @@ behavior:
       periodSeconds: 60
 ```
 
-When the number of pods is more than 40 the second policy will be used for scaling down.
+`periodSeconds` indicates the length of time in the past for which the policy must hold true.
+The first policy _(Pods)_ allows at most 4 replicas to be scaled down in one minute. The second policy
+_(Percent)_ allows at most 10% of the current replicas to be scaled down in one minute.
+
+Since by default the policy which allows the highest amount of change is selected, the second policy will
+only be used when the number of pod replicas is more than 40. With 40 or less replicas, the first policy will be applied.
 For instance if there are 80 replicas and the target has to be scaled down to 10 replicas
 then during the first step 8 replicas will be reduced. In the next iteration when the number
 of replicas is 72, 10% of the pods is 7.2 but the number is rounded up to 8. On each loop of
 the autoscaler controller the number of pods to be change is re-calculated based on the number
 of current replicas. When the number of replicas falls below 40 the first policy _(Pods)_ is applied
 and 4 replicas will be reduced at a time.
-
-`periodSeconds` indicates the length of time in the past for which the policy must hold true.
-The first policy allows at most 4 replicas to be scaled down in one minute. The second policy
-allows at most 10% of the current replicas to be scaled down in one minute.
 
 The policy selection can be changed by specifying the `selectPolicy` field for a scaling
 direction. By setting the value to `Min` which would select the policy which allows the
@@ -372,7 +440,7 @@ behavior:
       periodSeconds: 15
     selectPolicy: Max
 ```
-For scaling down the stabilization window is _300_ seconds(or the value of the
+For scaling down the stabilization window is _300_ seconds (or the value of the
 `--horizontal-pod-autoscaler-downscale-stabilization` flag if provided). There is only a single policy
 for scaling down which allows a 100% of the currently running replicas to be removed which
 means the scaling target can be scaled down to the minimum allowed replicas.

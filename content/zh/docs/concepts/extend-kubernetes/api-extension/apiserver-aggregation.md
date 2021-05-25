@@ -3,8 +3,8 @@ title: 通过聚合层扩展 Kubernetes API
 content_type: concept
 weight: 20
 ---
+
 <!--
----
 title: Extending the Kubernetes API with the aggregation layer
 reviewers:
 - lavalamp
@@ -12,7 +12,6 @@ reviewers:
 - chenopis
 content_type: concept
 weight: 20
----
 -->
 
 <!-- overview -->
@@ -32,7 +31,7 @@ The aggregation layer is different from [Custom Resources](/docs/concepts/extend
 这类已经成熟的解决方案，也可以是你自己开发的 API。
 
 聚合层不同于
-[自定义资源（Custom Resources）](/zh/docs/concepts/extend-kubernetes/api-extension/custom-resources/)。
+[定制资源（Custom Resources）](/zh/docs/concepts/extend-kubernetes/api-extension/custom-resources/)。
 后者的目的是让 {{< glossary_tooltip term_id="kube-apiserver" text="kube-apiserver" >}}
 能够认识新的对象类别（Kind）。
 
@@ -65,9 +64,7 @@ apiserver-builder 库同时提供构造扩展 API 服务器和控制器框架代
 Extension API servers should have low latency networking to and from the kube-apiserver.
 Discovery requests are required to round-trip from the kube-apiserver in five seconds or less.
 
-If your extension API server cannot achieve that latency requirement, consider making changes that let you meet it. You can also set the
-`EnableAggregatedDiscoveryTimeout=false` [feature gate](/docs/reference/command-line-tools-reference/feature-gates/) on the kube-apiserver
-to disable the timeout restriction. This deprecated feature gate will be removed in a future release.
+If your extension API server cannot achieve that latency requirement, consider making changes that let you meet it.
 -->
 ### 反应延迟  {#response-latency}
 
@@ -75,9 +72,6 @@ to disable the timeout restriction. This deprecated feature gate will be removed
 发现请求需要在五秒钟或更短的时间内完成到 kube-apiserver 的往返。
 
 如果你的扩展 API 服务器无法满足这一延迟要求，应考虑如何更改配置已满足需要。
-你也可以为 kube-apiserver 设置 `EnableAggregatedDiscoveryTimeout=false`
-[特性门控](/zh/docs/reference/command-line-tools-reference/feature-gates/)
-来禁用超时限制。此特性门控已经废弃，将在未来版本中被删除。
 
 ## {{% heading "whatsnext" %}}
 
@@ -91,6 +85,6 @@ to disable the timeout restriction. This deprecated feature gate will be removed
   了解如何在自己的环境中启用聚合器。
 * 接下来，了解[安装扩展 API 服务器](/zh/docs/tasks/extend-kubernetes/setup-extension-api-server/)，
   开始使用聚合层。
-* 也可以学习怎样[使用自定义资源定义扩展 Kubernetes API](/docs/tasks/extend-kubernetes/custom-resources/custom-resource-definitions/)。
+* 也可以学习怎样[使用自定义资源定义扩展 Kubernetes API](/zh/docs/tasks/extend-kubernetes/custom-resources/custom-resource-definitions/)。
 * 阅读 [APIService](/docs/reference/generated/kubernetes-api/{{< param "version" >}}/#apiservice-v1-apiregistration-k8s-io) 的规范
 

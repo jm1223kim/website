@@ -29,7 +29,7 @@ A _PersistentVolume_ (PV) is a piece of storage in the cluster that has been pro
 
 A _PersistentVolumeClaim_ (PVC) is a request for storage by a user. It is similar to a Pod. Pods consume node resources and PVCs consume PV resources. Pods can request specific levels of resources (CPU and Memory).  Claims can request specific size and access modes (e.g., they can be mounted ReadWriteOnce, ReadOnlyMany or ReadWriteMany, see [AccessModes](#access-modes)).
 
-While PersistentVolumeClaims allow a user to consume abstract storage resources, it is common that users need PersistentVolumes with varying properties, such as performance, for different problems. Cluster administrators need to be able to offer a variety of PersistentVolumes that differ in more ways than just size and access modes, without exposing users to the details of how those volumes are implemented. For these needs, there is the _StorageClass_ resource.
+While PersistentVolumeClaims allow a user to consume abstract storage resources, it is common that users need PersistentVolumes with varying properties, such as performance, for different problems. Cluster administrators need to be able to offer a variety of PersistentVolumes that differ in more ways than size and access modes, without exposing users to the details of how those volumes are implemented. For these needs, there is the _StorageClass_ resource.
 
 See the [detailed walkthrough with working examples](/docs/tasks/configure-pod-container/configure-persistent-volume-storage/).
 
@@ -231,7 +231,7 @@ the following types of volumes:
 * Azure Disk
 * Portworx
 * FlexVolumes
-* CSI
+* {{< glossary_tooltip text="CSI" term_id="csi" >}}
 
 You can only expand a PVC if its storage class's `allowVolumeExpansion` field is set to true.
 
@@ -308,28 +308,37 @@ If expanding underlying storage fails, the cluster administrator can manually re
 
 ## Types of Persistent Volumes
 
-PersistentVolume types are implemented as plugins.  Kubernetes currently supports the following plugins:
+PersistentVolume types are implemented as plugins. Kubernetes currently supports the following plugins:
 
-* GCEPersistentDisk
-* AWSElasticBlockStore
-* AzureFile
-* AzureDisk
-* CSI
-* FC (Fibre Channel)
-* FlexVolume
-* Flocker
-* NFS
-* iSCSI
-* RBD (Ceph Block Device)
-* CephFS
-* Cinder (OpenStack block storage)
-* Glusterfs
-* VsphereVolume
-* Quobyte Volumes
-* HostPath (Single node testing only -- local storage is not supported in any way and WILL NOT WORK in a multi-node cluster)
-* Portworx Volumes
-* ScaleIO Volumes
-* StorageOS
+* [`awsElasticBlockStore`](/docs/concepts/storage/volumes/#awselasticblockstore) - AWS Elastic Block Store (EBS)
+* [`azureDisk`](/docs/concepts/storage/volumes/#azuredisk) - Azure Disk
+* [`azureFile`](/docs/concepts/storage/volumes/#azurefile) - Azure File
+* [`cephfs`](/docs/concepts/storage/volumes/#cephfs) - CephFS volume
+* [`cinder`](/docs/concepts/storage/volumes/#cinder) - Cinder (OpenStack block storage)
+  (**deprecated**)
+* [`csi`](/docs/concepts/storage/volumes/#csi) - Container Storage Interface (CSI)
+* [`fc`](/docs/concepts/storage/volumes/#fc) - Fibre Channel (FC) storage
+* [`flexVolume`](/docs/concepts/storage/volumes/#flexVolume) - FlexVolume
+* [`flocker`](/docs/concepts/storage/volumes/#flocker) - Flocker storage
+* [`gcePersistentDisk`](/docs/concepts/storage/volumes/#gcepersistentdisk) - GCE Persistent Disk
+* [`glusterfs`](/docs/concepts/storage/volumes/#glusterfs) - Glusterfs volume
+* [`hostPath`](/docs/concepts/storage/volumes/#hostpath) - HostPath volume
+  (for single node testing only; WILL NOT WORK in a multi-node cluster;
+  consider using `local` volume instead)
+* [`iscsi`](/docs/concepts/storage/volumes/#iscsi) - iSCSI (SCSI over IP) storage
+* [`local`](/docs/concepts/storage/volumes/#local) - local storage devices
+  mounted on nodes.
+* [`nfs`](/docs/concepts/storage/volumes/#nfs) - Network File System (NFS) storage
+* `photonPersistentDisk` - Photon controller persistent disk.
+  (This volume type no longer works since the removal of the corresponding
+  cloud provider.)
+* [`portworxVolume`](/docs/concepts/storage/volumes/#portworxvolume) - Portworx volume
+* [`quobyte`](/docs/concepts/storage/volumes/#quobyte) - Quobyte volume
+* [`rbd`](/docs/concepts/storage/volumes/#rbd) - Rados Block Device (RBD) volume
+* [`scaleIO`](/docs/concepts/storage/volumes/#scaleio) - ScaleIO volume
+  (**deprecated**)
+* [`storageos`](/docs/concepts/storage/volumes/#storageos) - StorageOS volume
+* [`vsphereVolume`](/docs/concepts/storage/volumes/#vspherevolume) - vSphere VMDK volume
 
 ## Persistent Volumes
 
@@ -378,7 +387,7 @@ Kubernetes supports two `volumeModes` of PersistentVolumes: `Filesystem` and `Bl
 `Filesystem` is the default mode used when `volumeMode` parameter is omitted.
 
 A volume with `volumeMode: Filesystem` is *mounted* into Pods into a directory. If the volume
-is backed by a block device and the device is empty, Kuberneretes creates a filesystem
+is backed by a block device and the device is empty, Kubernetes creates a filesystem
 on the device before mounting it for the first time.
 
 You can set the value of `volumeMode` to `Block` to use a volume as a raw block device.
@@ -478,7 +487,7 @@ The following volume types support mount options:
 * VsphereVolume
 * iSCSI
 
-Mount options are not validated, so mount will simply fail if one is invalid.
+Mount options are not validated. If a mount option is invalid, the mount fails.
 
 In the past, the annotation `volume.beta.kubernetes.io/mount-options` was used instead
 of the `mountOptions` attribute. This annotation is still working; however,
@@ -531,11 +540,11 @@ spec:
 
 ### Access Modes
 
-Claims use the same conventions as volumes when requesting storage with specific access modes.
+Claims use [the same conventions as volumes](#access-modes) when requesting storage with specific access modes.
 
 ### Volume Modes
 
-Claims use the same convention as volumes to indicate the consumption of the volume as either a filesystem or block device.
+Claims use [the same convention as volumes](#volume-mode) to indicate the consumption of the volume as either a filesystem or block device.
 
 ### Resources
 
@@ -619,6 +628,11 @@ spec:
 ### A Note on Namespaces
 
 PersistentVolumes binds are exclusive, and since PersistentVolumeClaims are namespaced objects, mounting claims with "Many" modes (`ROX`, `RWX`) is only possible within one namespace.
+
+### PersistentVolumes typed `hostPath`
+
+A `hostPath` PersistentVolume uses a file or directory on the Node to emulate network-attached storage.
+See [an example of `hostPath` typed volume](/docs/tasks/configure-pod-container/configure-persistent-volume-storage/#create-a-persistentvolume).
 
 ## Raw Block Volume Support
 
@@ -723,12 +737,10 @@ Only statically provisioned volumes are supported for alpha release. Administrat
 
 ## Volume Snapshot and Restore Volume from Snapshot Support
 
-{{< feature-state for_k8s_version="v1.17" state="beta" >}}
+{{< feature-state for_k8s_version="v1.20" state="stable" >}}
 
-Volume snapshot feature was added to support CSI Volume Plugins only. For details, see [volume snapshots](/docs/concepts/storage/volume-snapshots/).
-
-To enable support for restoring a volume from a volume snapshot data source, enable the
-`VolumeSnapshotDataSource` feature gate on the apiserver and controller-manager.
+Volume snapshots only support the out-of-tree CSI volume plugins. For details, see [Volume Snapshots](/docs/concepts/storage/volume-snapshots/).
+In-tree volume plugins are deprecated. You can read about the deprecated volume plugins in the [Volume Plugin FAQ](https://github.com/kubernetes/community/blob/master/sig-storage/volume-plugin-faq.md).
 
 ### Create a PersistentVolumeClaim from a Volume Snapshot {#create-persistent-volume-claim-from-volume-snapshot}
 

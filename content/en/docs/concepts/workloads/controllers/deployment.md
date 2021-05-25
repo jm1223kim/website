@@ -47,14 +47,14 @@ In this example:
 * A Deployment named `nginx-deployment` is created, indicated by the `.metadata.name` field.
 * The Deployment creates three replicated Pods, indicated by the `.spec.replicas` field.
 * The `.spec.selector` field defines how the Deployment finds which Pods to manage.
-  In this case, you simply select a label that is defined in the Pod template (`app: nginx`).
+  In this case, you select a label that is defined in the Pod template (`app: nginx`).
   However, more sophisticated selection rules are possible,
   as long as the Pod template itself satisfies the rule.
 
   {{< note >}}
   The `.spec.selector.matchLabels` field is a map of {key,value} pairs.
   A single {key,value} in the `matchLabels` map is equivalent to an element of `matchExpressions`,
-  whose key field is "key" the operator is "In", and the values array contains only "value".
+  whose `key` field is "key", the `operator` is "In", and the `values` array contains only "value".
   All of the requirements, from both `matchLabels` and `matchExpressions`, must be satisfied in order to match.
   {{< /note >}}
 
@@ -97,7 +97,7 @@ Follow the steps given below to create the above Deployment:
 
    Notice how the number of desired replicas is 3 according to `.spec.replicas` field.
 
-3. To see the Deployment rollout status, run `kubectl rollout status deployment.v1.apps/nginx-deployment`.
+3. To see the Deployment rollout status, run `kubectl rollout status deployment/nginx-deployment`.
 
    The output is similar to:
    ```
@@ -171,13 +171,15 @@ Follow the steps given below to update your Deployment:
     ```shell
     kubectl --record deployment.apps/nginx-deployment set image deployment.v1.apps/nginx-deployment nginx=nginx:1.16.1
     ```
-    or simply use the following command: 
-    
+
+    or use the following command:
+
     ```shell
     kubectl set image deployment/nginx-deployment nginx=nginx:1.16.1 --record
     ```
   
-    The output is similar to this:
+    The output is similar to:
+
     ```
     deployment.apps/nginx-deployment image updated
     ```
@@ -188,7 +190,8 @@ Follow the steps given below to update your Deployment:
     kubectl edit deployment.v1.apps/nginx-deployment
     ```
 
-    The output is similar to this:
+    The output is similar to:
+
     ```
     deployment.apps/nginx-deployment edited
     ```
@@ -196,14 +199,17 @@ Follow the steps given below to update your Deployment:
 2. To see the rollout status, run:
 
     ```shell
-    kubectl rollout status deployment.v1.apps/nginx-deployment
+    kubectl rollout status deployment/nginx-deployment
     ```
 
     The output is similar to this:
+
     ```
     Waiting for rollout to finish: 2 out of 3 new replicas have been updated...
     ```
+
     or
+
     ```
     deployment "nginx-deployment" successfully rolled out
     ```
@@ -212,10 +218,11 @@ Get more details on your updated Deployment:
 
 * After the rollout succeeds, you can view the Deployment by running `kubectl get deployments`.
     The output is similar to this:
-    ```
-    NAME               READY   UP-TO-DATE   AVAILABLE   AGE
-    nginx-deployment   3/3     3            3           36s
-    ```
+
+  ```ini
+  NAME               READY   UP-TO-DATE   AVAILABLE   AGE
+  nginx-deployment   3/3     3            3           36s
+  ```
 
 * Run `kubectl get rs` to see that the Deployment updated the Pods by creating a new ReplicaSet and scaling it
 up to 3 replicas, as well as scaling down the old ReplicaSet to 0 replicas.
@@ -374,7 +381,7 @@ rolled back.
 * The rollout gets stuck. You can verify it by checking the rollout status:
 
     ```shell
-    kubectl rollout status deployment.v1.apps/nginx-deployment
+    kubectl rollout status deployment/nginx-deployment
     ```
 
     The output is similar to this:
@@ -701,7 +708,7 @@ nginx-deployment-618515232    11        11        11        7m
 You can pause a Deployment before triggering one or more updates and then resume it. This allows you to
 apply multiple fixes in between pausing and resuming without triggering unnecessary rollouts.
 
-* For example, with a Deployment that was just created:
+* For example, with a Deployment that was created:
   Get the Deployment details:
   ```shell
   kubectl get deploy
@@ -852,7 +859,7 @@ You can check if a Deployment has completed by using `kubectl rollout status`. I
 successfully, `kubectl rollout status` returns a zero exit code.
 
 ```shell
-kubectl rollout status deployment.v1.apps/nginx-deployment
+kubectl rollout status deployment/nginx-deployment
 ```
 The output is similar to this:
 ```
@@ -999,7 +1006,7 @@ You can check if a Deployment has failed to progress by using `kubectl rollout s
 returns a non-zero exit code if the Deployment has exceeded the progression deadline.
 
 ```shell
-kubectl rollout status deployment.v1.apps/nginx-deployment
+kubectl rollout status deployment/nginx-deployment
 ```
 The output is similar to this:
 ```

@@ -23,9 +23,9 @@ This page shows how to debug Pods and ReplicationControllers.
 
 <!-- 
 * You should be familiar with the basics of
-  [Pods](/docs/concepts/workloads/pods/pod/) and [Pod Lifecycle](/docs/concepts/workloads/pods/pod-lifecycle/). 
+  [Pods](/docs/concepts/workloads/pods/) and [Pod Lifecycle](/docs/concepts/workloads/pods/pod-lifecycle/). 
 -->
-* 你应该先熟悉 [Pods](/zh/docs/concepts/workloads/pods/pod/) 和
+* 你应该先熟悉 [Pods](/zh/docs/concepts/workloads/pods/) 和
   [Pod 生命周期](/zh/docs/concepts/workloads/pods/pod-lifecycle/) 的基础概念。 
 
 <!-- steps -->
@@ -79,7 +79,7 @@ case you can try several things:
 
 * Add more nodes to the cluster.
 
-* [Terminate unneeded pods](/docs/concepts/workloads/pods/#pod-termination)
+* [Terminate unneeded pods](/docs/concepts/workloads/pods/pod-lifecycle/#pod-termination)
   to make room for pending pods.
 
 * Check that the pod is not larger than your nodes. For example, if all
@@ -87,7 +87,7 @@ case you can try several things:
   will never be scheduled.
 
     You can check node capacities with the `kubectl get nodes -o <format>`
-    command. Here are some example command lines that extract just the necessary
+    command. Here are some example command lines that extract the necessary
     information: 
 -->
 #### 资源不足

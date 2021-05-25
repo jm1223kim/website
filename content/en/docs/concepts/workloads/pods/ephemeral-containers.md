@@ -78,7 +78,7 @@ sharing](/docs/tasks/configure-pod-container/share-process-namespace/) so
 you can view processes in other containers.
 
 See [Debugging with Ephemeral Debug Container](
-/docs/tasks/debug-application-cluster/debug-running-pod/#debugging-with-ephemeral-debug-container)
+/docs/tasks/debug-application-cluster/debug-running-pod/#ephemeral-container)
 for examples of troubleshooting using ephemeral containers.
 
 ## Ephemeral containers API
@@ -90,7 +90,7 @@ enabled, and Kubernetes client and server version v1.16 or later.
 {{< /note >}}
 
 The examples in this section demonstrate how ephemeral containers appear in
-the API. You would normally use `kubectl alpha debug` or another `kubectl`
+the API. You would normally use `kubectl debug` or another `kubectl`
 [plugin](/docs/tasks/extend-kubectl/kubectl-plugins/) to automate these steps
 rather than invoking the API directly.
 
@@ -103,7 +103,7 @@ the ephemeral container to add as an `EphemeralContainers` list:
     "apiVersion": "v1",
     "kind": "EphemeralContainers",
     "metadata": {
-            "name": "example-pod"
+        "name": "example-pod"
     },
     "ephemeralContainers": [{
         "command": [

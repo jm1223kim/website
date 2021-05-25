@@ -29,11 +29,11 @@ one zone also impairs services in another zone.
 ## Control plane behavior
 
 All [control plane components](/docs/concepts/overview/components/#control-plane-components)
-support running as a pool of interchangable resources, replicated per
+support running as a pool of interchangeable resources, replicated per
 component.
 
 When you deploy a cluster control plane, place replicas of
-control plane components across multple failure zones. If availability is
+control plane components across multiple failure zones. If availability is
 an important concern, select at least three failure zones and replicate
 each individual control plane component (API server, scheduler, etcd,
 cluster controller manager) across at least three failure zones.
@@ -59,7 +59,7 @@ When nodes start up, the kubelet on each node automatically adds
 {{< glossary_tooltip text="labels" term_id="label" >}} to the Node object
 that represents that specific kubelet in the Kubernetes API.
 These labels can include
-[zone information](/docs/reference/kubernetes-api/labels-annotations-taints/#topologykubernetesiozone).
+[zone information](/docs/reference/labels-annotations-taints/#topologykubernetesiozone).
 
 If your cluster spans multiple zones or regions, you can use node labels
 in conjunction with
@@ -111,7 +111,7 @@ see [Allowed topologies](/docs/concepts/storage/storage-classes/#allowed-topolog
 ## Networking
 
 By itself, Kubernetes does not include zone-aware networking. You can use a
-[network plugin](docs/concepts/extend-kubernetes/compute-storage-net/network-plugins/)
+[network plugin](/docs/concepts/extend-kubernetes/compute-storage-net/network-plugins/)
 to configure cluster networking, and that network solution might have zone-specific
 elements. For example, if your cloud provider supports Services with
 `type=LoadBalancer`, the load balancer might only send traffic to Pods running in the
@@ -126,7 +126,7 @@ of different failure zones, does vary depending on exactly how your cluster is s
 ## Fault recovery
 
 When you set up your cluster, you might also need to consider whether and how
-your setup can restore service if all of the failure zones in a region go
+your setup can restore service if all the failure zones in a region go
 off-line at the same time. For example, do you rely on there being at least
 one node able to run Pods in a zone?  
 Make sure that any cluster-critical repair work does not rely

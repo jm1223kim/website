@@ -24,8 +24,8 @@ problems to address:
 1. 高度耦合的容器间通信：这个已经被 {{< glossary_tooltip text="Pods" term_id="pod" >}}
    和 `localhost` 通信解决了。
 2. Pod 间通信：这个是本文档的重点要讲述的。
-3. Pod 和服务间通信：这个已经在[服务](/zh/docs/concepts/services-networking/service/) 里讲述过了。
-4. 外部和服务间通信：这也已经在[服务](/zh/docs/concepts/services-networking/service/) 讲述过了。
+3. Pod 和服务间通信：这个已经在[服务](/zh/docs/concepts/services-networking/service/)里讲述过了。
+4. 外部和服务间通信：这也已经在[服务](/zh/docs/concepts/services-networking/service/)讲述过了。
 
 <!-- body -->
 
@@ -82,9 +82,9 @@ Linux):
 Kubernetes 对所有网络设施的实施，都需要满足以下的基本要求（除非有设置一些特定的网络分段策略）：
 
 * 节点上的 Pod 可以不通过 NAT 和其他任何节点上的 Pod 通信
-* 节点上的代理（比如：系统守护进程、kubelet） 可以和节点上的所有Pod通信
+* 节点上的代理（比如：系统守护进程、kubelet）可以和节点上的所有Pod通信
 
-备注：仅针对那些支持 `Pods` 在主机网络中运行的平台(比如：Linux) ：
+备注：仅针对那些支持 `Pods` 在主机网络中运行的平台（比如：Linux）：
 
 * 那些运行在节点的主机网络里的 Pod 可以不通过 NAT 和所有节点上的 Pod 通信
 
@@ -95,19 +95,19 @@ to containers.  If your job previously ran in a VM, your VM had an IP and could
 talk to other VMs in your project.  This is the same basic model.
 
 Kubernetes IP addresses exist at the `Pod` scope - containers within a `Pod`
-share their network namespaces - including their IP address.  This means that
-containers within a `Pod` can all reach each other's ports on `localhost`. This
-also means that containers within a `Pod` must coordinate port usage, but this
-is no different from processes in a VM.  This is called the "IP-per-pod" model.
+share their network namespaces - including their IP address and MAC address.
+This means that containers within a `Pod` can all reach each other's ports on
+`localhost`. This also means that containers within a `Pod` must coordinate port
+usage, but this is no different from processes in a VM.  This is called the
 -->
 这个模型不仅不复杂，而且还和 Kubernetes 的实现廉价的从虚拟机向容器迁移的初衷相兼容，
 如果你的工作开始是在虚拟机中运行的，你的虚拟机有一个 IP ，
 这样就可以和其他的虚拟机进行通信，这是基本相同的模型。
 
-Kubernetes 的 IP 地址存在于 `Pod` 范围内 - 容器分享它们的网络命名空间 - 包括它们的 IP 地址。
+Kubernetes 的 IP 地址存在于 `Pod` 范围内 - 容器共享它们的网络命名空间 - 包括它们的 IP 地址和 MAC 地址。
 这就意味着 `Pod` 内的容器都可以通过 `localhost` 到达各个端口。
 这也意味着 `Pod` 内的容器都需要相互协调端口的使用，但是这和虚拟机中的进程似乎没有什么不同，
-这也被称为“一个 Pod 一个 IP” 模型。
+这也被称为“一个 Pod 一个 IP”模型。
 
 <!--
 How this is implemented is a detail of the particular container runtime in use.
@@ -119,7 +119,7 @@ blind to the existence or non-existence of host ports.
 -->
 如何实现这一点是正在使用的容器运行时的特定信息。
 
-也可以在 `node` 本身通过端口去请求你的 `Pod` （称之为主机端口），
+也可以在 `node` 本身通过端口去请求你的 `Pod`（称之为主机端口），
 但这是一个很特殊的操作。转发方式如何实现也是容器运行时的细节。
 `Pod` 自己并不知道这些主机端口是否存在。
 
@@ -196,7 +196,7 @@ AOS 具有一组丰富的 REST API 端点，这些端点使 Kubernetes 能够根
 从而为私有云和公共云提供端到端管理系统。
 
 AOS 支持使用包括 Cisco、Arista、Dell、Mellanox、HPE 在内的制造商提供的通用供应商设备，
-以及大量白盒系统和开放网络操作系统，例如 Microsoft SONiC、Dell OPX 和 Cumulus Linux 。
+以及大量白盒系统和开放网络操作系统，例如 Microsoft SONiC、Dell OPX 和 Cumulus Linux。
 
 想要更详细地了解 AOS 系统是如何工作的可以点击这里：https://www.apstra.com/products/how-it-works/
 
@@ -218,17 +218,17 @@ AWS 虚拟私有云（VPC）网络。该 CNI 插件提供了高吞吐量和可�
 
 使用该 CNI 插件，可使 Kubernetes Pod 拥有与在 VPC 网络上相同的 IP 地址。
 CNI 将 AWS 弹性网络接口（ENI）分配给每个 Kubernetes 节点，并将每个 ENI 的辅助 IP 范围用于该节点上的 Pod 。
-CNI 包含用于 ENI 和 IP 地址的预分配的控件，以便加快 Pod 的启动时间，并且能够支持多达2000个节点的大型集群。
+CNI 包含用于 ENI 和 IP 地址的预分配的控件，以便加快 Pod 的启动时间，并且能够支持多达 2000 个节点的大型集群。
 
 此外，CNI 可以与
-[用于执行网络策略的 Calico](https://docs.aws.amazon.com/eks/latest/userguide/calico.html)一起运行。
+[用于执行网络策略的 Calico](https://docs.aws.amazon.com/eks/latest/userguide/calico.html) 一起运行。
 AWS VPC CNI 项目是开源的，请查看 [GitHub 上的文档](https://github.com/aws/amazon-vpc-cni-k8s)。
 
 <!--
 ### Azure CNI for Kubernetes 
 [Azure CNI](https://docs.microsoft.com/en-us/azure/virtual-network/container-networking-overview) is an [open source](https://github.com/Azure/azure-container-networking/blob/master/docs/cni.md) plugin that integrates Kubernetes Pods with an Azure Virtual Network (also known as VNet) providing network performance at par with VMs. Pods can connect to peered VNet and to on-premises over Express Route or site-to-site VPN and are also directly reachable from these networks. Pods can access Azure services, such as storage and SQL, that are protected by Service Endpoints or Private Link. You can use VNet security policies and routing to filter Pod traffic. The plugin assigns VNet IPs to Pods by utilizing a pool of secondary IPs pre-configured on the Network Interface of a Kubernetes node.
 
-Azure CNI is available natively in the [Azure Kubernetes Service (AKS)] (https://docs.microsoft.com/en-us/azure/aks/configure-azure-cni).
+Azure CNI is available natively in the [Azure Kubernetes Service (AKS)](https://docs.microsoft.com/en-us/azure/aks/configure-azure-cni).
 -->
 ### Kubernetes 的 Azure CNI 
 
@@ -351,6 +351,18 @@ network complexity required to deploy Kubernetes at scale within AWS.
 简而言之，cni-ipvlan-vpc-k8s 大大降低了在 AWS 中大规模部署 Kubernetes 所需的网络复杂性。
 
 <!--
+### Coil
+
+[Coil](https://github.com/cybozu-go/coil) is a CNI plugin designed for ease of integration, providing flexible egress networking.
+Coil operates with a low overhead compared to bare metal, and allows you to define arbitrary egress NAT gateways for external networks.
+
+-->
+### Coil
+
+[Coil](https://github.com/cybozu-go/coil) 是一个为易于集成、提供灵活的出站流量网络而设计的 CNI 插件。
+与裸机相比，Coil 的额外操作开销低，并允许针对外部网络的出站流量任意定义 NAT 网关。
+
+<!--
 ### Contiv
 
 [Contiv](https://github.com/contiv/netplugin) provides configurable networking (native l3 using BGP, overlay using vxlan,  classic l2, or Cisco-SDN/ACI) for various use cases. [Contiv](https://contiv.io) is all open sourced.
@@ -470,7 +482,7 @@ Docker 会以这样的参数启动：
 DOCKER_OPTS="--bridge=cbr0 --iptables=false --ip-masq=false"
 ```
 
-这个网桥是由 Kubelet（由 --network-plugin=kubenet 参数控制）根据节点的 `.spec.podCIDR` 参数创建的。
+这个网桥是由 Kubelet（由 `--network-plugin=kubenet` 参数控制）根据节点的 `.spec.podCIDR` 参数创建的。
 
 Docker 将会从 `cbr-cidr` 块分配 IP。
 容器之间可以通过 `cbr0` 网桥相互访问，也可以访问节点。
@@ -691,4 +703,3 @@ document](https://git.k8s.io/community/contributors/design-proposals/network/net
 网络模型的早期设计、运行原理以及未来的一些计划，都在
 [联网设计文档](https://git.k8s.io/community/contributors/design-proposals/network/networking.md)
 里有更详细的描述。
-

@@ -99,6 +99,9 @@ DELETE    | delete(개별 리소스), deletecollection(리소스 모음)
 ```bash
 kubectl auth can-i create deployments --namespace dev
 ```
+
+다음과 유사하게 출력된다.
+
 ```
 yes
 ```
@@ -106,6 +109,9 @@ yes
 ```shell
 kubectl auth can-i create deployments --namespace prod
 ```
+
+다음과 유사하게 출력된다.
+
 ```
 no
 ```
@@ -116,6 +122,9 @@ no
 ```bash
 kubectl auth can-i list secrets --namespace dev --as dave
 ```
+
+다음과 유사하게 출력된다.
+
 ```
 no
 ```
@@ -128,7 +137,7 @@ API 서버 인가를 외부 서비스에 노출시킨다.
 * `LocalSubjectAccessReview` - `SubjectAccessReview`와 비슷하지만 특정 네임스페이스로 제한된다.
 * `SelfSubjectRulesReview` - 사용자가 네임스페이스 안에서 수행할 수 있는 작업 집합을 반환하는 검토. 사용자가 자신의 접근을 빠르게 요약해서 보거나 UI가 작업을 숨기거나 표시하는 데 유용하다.
 
-이러한 API는 반환된 객체의 응답 "status" 필드가 쿼리의 결과인
+이러한 API는 반환된 오브젝트의 응답 "status" 필드가 쿼리의 결과인
 일반 쿠버네티스 리소스를 생성하여 쿼리할 수 있다.
 
 ```bash
@@ -145,7 +154,7 @@ EOF
 ```
 
 생성된 `SelfSubjectAccessReview` 는 다음과 같다.
-```
+```yaml
 apiVersion: authorization.k8s.io/v1
 kind: SelfSubjectAccessReview
 metadata:

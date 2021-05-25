@@ -30,7 +30,7 @@ getting killed by the kubelet before they are up and running.
 ## {{% heading "prerequisites" %}}
 
 
-{{< include "task-tutorial-prereqs.md" >}} {{< version-check >}}
+{{< include "task-tutorial-prereqs.md" >}}
 
 
 
@@ -204,7 +204,7 @@ seconds.
 
 In addition to the readiness probe, this configuration includes a liveness probe.
 The kubelet will run the first liveness probe 15 seconds after the container
-starts. Just like the readiness probe, this will attempt to connect to the
+starts. Similar to the readiness probe, this will attempt to connect to the
 `goproxy` container on port 8080. If the liveness probe fails, the container
 will be restarted.
 
@@ -293,6 +293,10 @@ Services.
 Readiness probes runs on the container during its whole lifecycle.
 {{< /note >}}
 
+{{< caution >}}
+Liveness probes *do not* wait for readiness probes to succeed. If you want to wait before executing a liveness probe you should use initialDelaySeconds or a startupProbe.
+{{< /caution >}}
+
 Readiness probes are configured similarly to liveness probes. The only difference
 is that you use the `readinessProbe` field instead of the `livenessProbe` field.
 
@@ -336,13 +340,37 @@ and startup Probes. Minimum value is 1.
 try `failureThreshold` times before giving up. Giving up in case of liveness probe means restarting the container. In case of readiness probe the Pod will be marked Unready.
 Defaults to 3. Minimum value is 1.
 
+{{< note >}}
+Before Kubernetes 1.20, the field `timeoutSeconds` was not respected for exec probes:
+probes continued running indefinitely, even past their configured deadline,
+until a result was returned.
+
+This defect was corrected in Kubernetes v1.20. You may have been relying on the previous behavior,
+even without realizing it, as the default timeout is 1 second.
+As a cluster administrator, you can disable the [feature gate](/docs/reference/command-line-tools-reference/feature-gates/) `ExecProbeTimeout` (set it to `false`)
+on each kubelet to restore the  behavior from older versions, then remove that override
+once all the exec probes in the cluster have a `timeoutSeconds` value set.  
+If you have pods that are impacted from the default 1 second timeout,
+you should update their probe timeout so that you're ready for the
+eventual removal of that feature gate.
+
+With the fix of the defect, for exec probes, on Kubernetes `1.20+` with the `dockershim` container runtime,
+the process inside the container may keep running even after probe returned failure because of the timeout.
+{{< /note >}}
+{{< caution >}}
+Incorrect implementation of readiness probes may result in an ever growing number
+of processes in the container, and resource starvation if this is left unchecked.
+{{< /caution >}}
+
+### HTTP probes
+
 [HTTP probes](/docs/reference/generated/kubernetes-api/{{< param "version" >}}/#httpgetaction-v1-core)
 have additional fields that can be set on `httpGet`:
 
 * `host`: Host name to connect to, defaults to the pod IP. You probably want to
 set "Host" in httpHeaders instead.
 * `scheme`: Scheme to use for connecting to the host (HTTP or HTTPS). Defaults to HTTP.
-* `path`: Path to access on the HTTP server.
+* `path`: Path to access on the HTTP server. Defaults to /.
 * `httpHeaders`: Custom headers to set in the request. HTTP allows repeated headers.
 * `port`: Name or number of the port to access on the container. Number must be
 in the range 1 to 65535.
@@ -357,11 +385,90 @@ and the Pod's `hostNetwork` field is true. Then `host`, under `httpGet`, should 
 to 127.0.0.1. If your pod relies on virtual hosts, which is probably the more common
 case, you should not use `host`, but rather set the `Host` header in `httpHeaders`.
 
+For an HTTP probe, the kubelet sends two request headers in addition to the mandatory `Host` header:
+`User-Agent`, and `Accept`. The default values for these headers are `kube-probe/{{< skew latestVersion >}}`
+(where `{{< skew latestVersion >}}` is the version of the kubelet ), and `*/*` respectively.
+
+You can override the default headers by defining `.httpHeaders` for the probe; for example
+
+```yaml
+livenessProbe:
+  httpGet:
+    httpHeaders:
+      - name: Accept
+        value: application/json
+
+startupProbe:
+  httpGet:
+    httpHeaders:
+      - name: User-Agent
+        value: MyUserAgent
+```
+
+You can also remove these two headers by defining them with an empty value.
+
+```yaml
+livenessProbe:
+  httpGet:
+    httpHeaders:
+      - name: Accept
+        value: ""
+
+startupProbe:
+  httpGet:
+    httpHeaders:
+      - name: User-Agent
+        value: ""
+```
+
+### TCP probes
+
 For a TCP probe, the kubelet makes the probe connection at the node, not in the pod, which
 means that you can not use a service name in the `host` parameter since the kubelet is unable
 to resolve it.
 
+### Probe-level `terminationGracePeriodSeconds`
 
+{{< feature-state for_k8s_version="v1.21" state="alpha" >}}
+
+Prior to release 1.21, the pod-level `terminationGracePeriodSeconds` was used
+for terminating a container that failed its liveness or startup probe. This
+coupling was unintended and may have resulted in failed containers taking an
+unusually long time to restart when a pod-level `terminationGracePeriodSeconds`
+was set.
+
+In 1.21, when the feature flag `ProbeTerminationGracePeriod` is enabled, users
+can specify a probe-level `terminationGracePeriodSeconds` as part of the probe
+specification. When the feature flag is enabled, and both a pod- and
+probe-level `terminationGracePeriodSeconds` are set, the kubelet will use the
+probe-level value.
+
+For example,
+
+```yaml
+spec:
+  terminationGracePeriodSeconds: 3600  # pod-level
+  containers:
+  - name: test
+    image: ...
+
+    ports:
+    - name: liveness-port
+      containerPort: 8080
+      hostPort: 8080
+
+    livenessProbe:
+      httpGet:
+        path: /healthz
+        port: liveness-port
+      failureThreshold: 1
+      periodSeconds: 60
+      # Override pod-level terminationGracePeriodSeconds #
+      terminationGracePeriodSeconds: 60
+```
+
+Probe-level `terminationGracePeriodSeconds` cannot be set for readiness probes.
+It will be rejected by the API server.
 
 ## {{% heading "whatsnext" %}}
 
@@ -374,7 +481,3 @@ You can also read the API references for:
 * [Pod](/docs/reference/generated/kubernetes-api/{{< param "version" >}}/#pod-v1-core)
 * [Container](/docs/reference/generated/kubernetes-api/{{< param "version" >}}/#container-v1-core)
 * [Probe](/docs/reference/generated/kubernetes-api/{{< param "version" >}}/#probe-v1-core)
-
-
-
-

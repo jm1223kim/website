@@ -611,13 +611,13 @@ a time longer than the liveness interval would allow.
 If your container usually starts in more than
 `initialDelaySeconds + failureThreshold × periodSeconds`, you should specify a
 startup probe that checks the same endpoint as the liveness probe. The default for
-`periodSeconds` is 30s. You should then set its `failureThreshold` high enough to
+`periodSeconds` is 10s. You should then set its `failureThreshold` high enough to
 allow the container to start, without changing the default values of the liveness
 probe. This helps to protect against deadlocks.
 -->
 如果你的容器启动时间通常超出  `initialDelaySeconds + failureThreshold × periodSeconds`
 总值，你应该设置一个启动探测，对存活态探针所使用的同一端点执行检查。
-`periodSeconds` 的默认值是 30 秒。你应该将其 `failureThreshold` 设置得足够高，
+`periodSeconds` 的默认值是 10 秒。你应该将其 `failureThreshold` 设置得足够高，
 以便容器有充足的时间完成启动，并且避免更改存活态探针所使用的默认值。
 这一设置有助于减少死锁状况的发生。
 
@@ -745,7 +745,7 @@ An example flow:
    to 0 (immediate deletion).
 1. The API server deletes the Pod's API object, which is then no longer visible from any client.
 -->
-4. 超出终止宽限期线时，`kubelet` 会触发强制关闭过程。容器运行时会向 Pod 中所有容器内
+4. 超出终止宽限期限时，`kubelet` 会触发强制关闭过程。容器运行时会向 Pod 中所有容器内
    仍在运行的进程发送 `SIGKILL` 信号。
    `kubelet` 也会清理隐藏的 `pause` 容器，如果容器运行时使用了这种容器的话。
 

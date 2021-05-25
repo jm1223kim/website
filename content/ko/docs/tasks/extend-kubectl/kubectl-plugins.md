@@ -6,7 +6,7 @@ content_type: task
 
 <!-- overview -->
 
-이 가이드는 [kubectl](/docs/reference/kubectl/kubectl/) 확장을 설치하고 작성하는 방법을 보여준다. 핵심 `kubectl` 명령을 쿠버네티스 클러스터와 상호 작용하기 위한 필수 구성 요소로 생각함으로써, 클러스터 관리자는
+이 가이드는 [kubectl](/ko/docs/reference/kubectl/kubectl/) 확장을 설치하고 작성하는 방법을 보여준다. 핵심 `kubectl` 명령을 쿠버네티스 클러스터와 상호 작용하기 위한 필수 구성 요소로 생각함으로써, 클러스터 관리자는
 플러그인을 이러한 구성 요소를 활용하여 보다 복잡한 동작을 만드는 수단으로 생각할 수 있다. 플러그인은 새로운 하위 명령으로 `kubectl` 을 확장하고, 주요 배포판에 포함되지 않은 `kubectl` 의 새로운 사용자 정의 기능을 허용한다.
 
 
@@ -22,14 +22,14 @@ content_type: task
 
 ## kubectl 플러그인 설치
 
-플러그인은 이름이 `kubectl-` 로 시작되는 독립형 실행 파일이다. 플러그인을 설치하려면, 간단히 실행 파일을 `PATH` 에 지정된 디렉터리로 옮기면 된다.
+플러그인은 이름이 `kubectl-` 로 시작되는 독립형 실행 파일이다. 플러그인을 설치하려면, 실행 파일을 `PATH` 에 지정된 디렉터리로 옮기면 된다.
 
 [Krew](https://krew.dev/)를 사용하여 오픈소스에서 사용 가능한
 kubectl 플러그인을 검색하고 설치할 수도 있다. Krew는 쿠버네티스 SIG CLI 커뮤니티에서 관리하는
 플러그인 관리자이다.
 
 {{< caution >}}
-Krew [플러그인 인덱스](https://index.krew.dev/)를 통해 사용할 수 있는 kubectl 플러그인은
+Krew [플러그인 인덱스](https://krew.sigs.k8s.io/plugins/)를 통해 사용할 수 있는 kubectl 플러그인은
 보안 감사를 받지 않는다. 써드파티 플러그인은 시스템에서 실행되는 임의의
 프로그램이므로, 사용자는 이를 인지한 상태에서 설치하고 실행해야 한다.
 {{< /caution >}}
@@ -42,7 +42,7 @@ Krew [플러그인 인덱스](https://index.krew.dev/)를 통해 사용할 수 �
 서로의 이름과 겹치는 유효한 플러그인 파일에 대한 경고도 포함된다.
 
 [Krew](https://krew.dev/)를 사용하여 커뮤니티가 관리하는
-[플러그인 인덱스](https://index.krew.dev/)에서 `kubectl`
+[플러그인 인덱스](https://krew.sigs.k8s.io/plugins/)에서 `kubectl`
 플러그인을 검색하고 설치할 수 있다.
 
 #### 제한 사항
@@ -57,9 +57,9 @@ Krew [플러그인 인덱스](https://index.krew.dev/)를 통해 사용할 수 �
 
 플러그인 설치 또는 사전 로딩이 필요하지 않다. 플러그인 실행 파일은
 `kubectl` 바이너리에서 상속된 환경을 받는다.
-플러그인은 이름을 기반으로 구현할 명령 경로를 결정한다. 예를
-들어, 새로운 명령인 `kubectl foo` 를 제공하려는 플러그인은 단순히 이름이
-`kubectl-foo` 이고, `PATH` 의 어딘가에 있다.
+플러그인은 이름을 기반으로 구현할 명령 경로를 결정한다.
+예를 들어, `kubectl-foo` 라는 플러그인은 `kubectl foo` 명령을 제공한다.
+`PATH` 어딘가에 플러그인 실행 파일을 설치해야 한다.
 
 ### 플러그인 예제
 
@@ -85,30 +85,31 @@ echo "I am a plugin named kubectl-foo"
 
 ### 플러그인 사용
 
-위의 플러그인을 사용하려면, 간단히 실행 가능하게 만든다.
+플러그인을 사용하려면, 실행 가능하게 만든다.
 
-```
+```shell
 sudo chmod +x ./kubectl-foo
 ```
 
 그리고 `PATH` 의 어느 곳에나 옮겨 놓는다.
 
-```
+```shell
 sudo mv ./kubectl-foo /usr/local/bin
 ```
 
 이제 플러그인을 `kubectl` 명령으로 호출할 수 있다.
 
-```
+```shell
 kubectl foo
 ```
+
 ```
 I am a plugin named kubectl-foo
 ```
 
 모든 인수와 플래그는 그대로 실행 파일로 전달된다.
 
-```
+```shell
 kubectl foo version
 ```
 ```
@@ -120,6 +121,7 @@ kubectl foo version
 ```bash
 export KUBECONFIG=~/.kube/config
 kubectl foo config
+
 ```
 ```
 /home/<user>/.kube/config
@@ -128,6 +130,7 @@ kubectl foo config
 ```shell
 KUBECONFIG=/etc/kube/config kubectl foo config
 ```
+
 ```
 /etc/kube/config
 ```
@@ -351,7 +354,7 @@ CLI 런타임 리포지터리에 제공된 도구 사용법의 예제는
 방식을 제공한다. 이렇게 하면, 모든 대상 플랫폼(리눅스, 윈도우, macOS 등)에
 단일 패키징 형식을 사용하고 사용자에게 업데이트를 제공한다.
 Krew는 또한 다른 사람들이 여러분의 플러그인을 검색하고 설치할 수 있도록
-[플러그인 인덱스](https://index.krew.dev/)를
+[플러그인 인덱스](https://krew.sigs.k8s.io/plugins/)를
 유지 관리한다.
 
 
@@ -373,10 +376,7 @@ kubectl 플러그인의 배포 패키지를
 컴파일된 패키지를 사용 가능하게 하거나, Krew를 사용하면 설치가
 더 쉬워진다.
 
-
-
 ## {{% heading "whatsnext" %}}
-
 
 * Go로 작성된 플러그인의
   [자세한 예제](https://github.com/kubernetes/sample-cli-plugin)에 대해서는
@@ -384,5 +384,3 @@ kubectl 플러그인의 배포 패키지를
   궁금한 사항이 있으면,
   [SIG CLI 팀](https://github.com/kubernetes/community/tree/master/sig-cli)에 문의한다.
 * kubectl 플러그인 패키지 관리자인 [Krew](https://krew.dev/)에 대해 읽어본다.
-
-

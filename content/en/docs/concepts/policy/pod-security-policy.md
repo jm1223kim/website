@@ -4,12 +4,14 @@ reviewers:
 - tallclair
 title: Pod Security Policies
 content_type: concept
-weight: 20
+weight: 30
 ---
 
 <!-- overview -->
 
-{{< feature-state state="beta" >}}
+{{< feature-state for_k8s_version="v1.21" state="deprecated" >}}
+
+PodSecurityPolicy is deprecated as of Kubernetes v1.21, and will be removed in v1.25.
 
 Pod Security Policies enable fine-grained authorization of pod creation and
 updates.
@@ -197,7 +199,7 @@ alias kubectl-user='kubectl --as=system:serviceaccount:psp-example:fake-user -n 
 ### Create a policy and a pod
 
 Define the example PodSecurityPolicy object in a file. This is a policy that
-simply prevents the creation of privileged pods.
+prevents the creation of privileged pods.
 The name of a PodSecurityPolicy object must be a valid
 [DNS subdomain name](/docs/concepts/overview/working-with-objects/names#dns-subdomain-names).
 
@@ -216,12 +218,17 @@ kubectl-user create -f- <<EOF
 apiVersion: v1
 kind: Pod
 metadata:
-  name:      pause
+  name: pause
 spec:
   containers:
-    - name:  pause
+    - name: pause
       image: k8s.gcr.io/pause
 EOF
+```
+
+The output is similar to this:
+
+```
 Error from server (Forbidden): error when creating "STDIN": pods "pause" is forbidden: unable to validate against any pod security policy: []
 ```
 
@@ -264,12 +271,17 @@ kubectl-user create -f- <<EOF
 apiVersion: v1
 kind: Pod
 metadata:
-  name:      pause
+  name: pause
 spec:
   containers:
-    - name:  pause
+    - name: pause
       image: k8s.gcr.io/pause
 EOF
+```
+
+The output is similar to this
+
+```
 pod "pause" created
 ```
 
@@ -281,14 +293,19 @@ kubectl-user create -f- <<EOF
 apiVersion: v1
 kind: Pod
 metadata:
-  name:      privileged
+  name: privileged
 spec:
   containers:
-    - name:  pause
+    - name: pause
       image: k8s.gcr.io/pause
       securityContext:
         privileged: true
 EOF
+```
+
+The output is similar to this:
+
+```
 Error from server (Forbidden): error when creating "STDIN": pods "privileged" is forbidden: unable to validate against any pod security policy: [spec.containers[0].securityContext.privileged: Invalid value: true: Privileged containers are not allowed]
 ```
 

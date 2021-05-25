@@ -19,7 +19,8 @@ weight: 15
 <!--
 Setting up an extension API server to work the aggregation layer allows the Kubernetes apiserver to be extended with additional APIs, which are not part of the core Kubernetes APIs.
 -->
-安装扩展的 API 服务器来使用聚合层以让 Kubernetes API 服务器使用其它 API 进行扩展，
+安装扩展的 API 服务器来使用聚合层以让 Kubernetes API 服务器使用
+其它 API 进行扩展，
 这些 API 不是核心 Kubernetes API 的一部分。
 
 ## {{% heading "prerequisites" %}}
@@ -76,14 +77,14 @@ Alternatively, you can use an existing 3rd party solution, such as [apiserver-bu
 1. Make sure that your extension-apiserver loads those certs from that volume and that they are used in the HTTPS handshake.
 1. Create a Kubernetes service account in your namespace.
 1. Create a Kubernetes cluster role for the operations you want to allow on your resources.
-1. Create a Kubernetes cluster role binding from the service account in your namespace to the cluster role you just created.
+1. Create a Kubernetes cluster role binding from the service account in your namespace to the cluster role you created.
 1. Create a Kubernetes cluster role binding from the service account in your namespace to the `system:auth-delegator` cluster role to delegate auth decisions to the Kubernetes core API server.
 1. Create a Kubernetes role binding from the service account in your namespace to the `extension-apiserver-authentication-reader` role. This allows your extension api-server to access the `extension-apiserver-authentication` configmap.
 -->
 8.  确保你的扩展 apiserver 从该卷中加载了那些证书，并在 HTTPS 握手过程中使用它们。
 9.  在你的命令空间中创建一个 Kubernetes 服务账号。
 10. 为资源允许的操作创建 Kubernetes 集群角色。
-11. 用你命令空间中的服务账号创建一个 Kubernetes 集群角色绑定，绑定到你刚创建的角色上。
+11. 用你命令空间中的服务账号创建一个 Kubernetes 集群角色绑定，绑定到你创建的角色上。
 12. 用你命令空间中的服务账号创建一个 Kubernetes 集群角色绑定，绑定到 `system:auth-delegator`
     集群角色，以将 auth 决策委派给 Kubernetes 核心 API 服务器。
 13. 以你命令空间中的服务账号创建一个 Kubernetes 集群角色绑定，绑定到
@@ -112,5 +113,5 @@ Alternatively, you can use an existing 3rd party solution, such as [apiserver-bu
 * 如果你还未配置，请[配置聚合层](/zh/docs/tasks/extend-kubernetes/configure-aggregation-layer/)
   并启用 apiserver 的相关参数。
 * 高级概述，请参阅[使用聚合层扩展 Kubernetes API](/zh/docs/concepts/extend-kubernetes/api-extension/apiserver-aggregation)。
-* 了解如何[使用 Custom Resource Definition 扩展 Kubernetes API](/docs/tasks/extend-kubernetes/custom-resources/custom-resource-definitions/)。
+* 了解如何[使用 Custom Resource Definition 扩展 Kubernetes API](/zh/docs/tasks/extend-kubernetes/custom-resources/custom-resource-definitions/)。
 

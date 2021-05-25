@@ -293,8 +293,17 @@ how.nice.to.look=fairlyNice
 ```
 
 <!--
+When `kubectl` creates a ConfigMap from inputs that are not ASCII or UTF-8, the tool puts these into the `binaryData` field of the ConfigMap, and not in `data`. Both text and binary data sources can be combined in one ConfigMap.
+If you want to view the `binaryData` keys (and their values) in a ConfigMap, you can run `kubectl get configmap -o jsonpath='{.binaryData}' <name>`.
+
 Use the option `--from-env-file` to create a ConfigMap from an env-file, for example:
 -->
+当 `kubectl` 基于非 ASCII 或 UTF-8 的输入创建 ConfigMap 时，
+该工具将这些输入放入 ConfigMap 的 `binaryData` 字段，而不是 `data` 中。
+同一个 ConfigMap 中可同时包含文本数据和二进制数据源。
+如果你想查看 ConfigMap 中的 `binaryData` 键（及其值），
+你可以运行 `kubectl get configmap -o jsonpath='{.binaryData}' <name>`。
+
 使用 `--from-env-file` 选项从环境文件创建 ConfigMap，例如：
 
 <!--
@@ -814,9 +823,9 @@ Kubernetes v1.6 和更高版本支持此功能。
 ## 在 Pod 命令中使用 ConfigMap 定义的环境变量
 
 <!--
-You can use ConfigMap-defined environment variables in the `command` section of the Pod specification using the `$(VAR_NAME)` Kubernetes substitution syntax.
+You can use ConfigMap-defined environment variables in the `command` and `args` of a container using the `$(VAR_NAME)` Kubernetes substitution syntax.
 -->
-你可以使用 `$(VAR_NAME)` Kubernetes 替换语法在 Pod 规约的 `command` 部分中使用 ConfigMap 定义的环境变量。
+你可以使用 `$(VAR_NAME)` Kubernetes 替换语法在容器的 `command` 和 `args` 部分中使用 ConfigMap 定义的环境变量。
 
 <!--
 For example, the following Pod specification

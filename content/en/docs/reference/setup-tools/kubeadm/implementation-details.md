@@ -28,11 +28,11 @@ The cluster that `kubeadm init` and `kubeadm join` set up should be:
    - lock-down the kubelet API
    - locking down access to the API for system components like the kube-proxy and CoreDNS
    - locking down what a Bootstrap Token can access
- - **Easy to use**: The user should not have to run anything more than a couple of commands:
+ - **User-friendly**: The user should not have to run anything more than a couple of commands:
    - `kubeadm init`
    - `export KUBECONFIG=/etc/kubernetes/admin.conf`
    - `kubectl apply -f <network-of-choice.yaml>`
-   - `kubeadm join --token <token> <master-ip>:<master-port>`
+   - `kubeadm join --token <token> <endpoint>:<port>`
  - **Extendable**:
    - It should _not_ favor any particular network provider. Configuring the cluster network is out-of-scope
    - It should provide the possibility to use a config file for customizing various parameters
@@ -206,7 +206,7 @@ Please note that:
 
 1. All images will be pulled from k8s.gcr.io by default. See [using custom images](/docs/reference/setup-tools/kubeadm/kubeadm-init/#custom-images) for customizing the image repository
 2. In case of kubeadm is executed in the `--dry-run` mode, static Pods files are written in a temporary folder
-3. Static Pod manifest generation for master components can be invoked individually with the [`kubeadm init phase control-plane all`](/docs/reference/setup-tools/kubeadm/kubeadm-init-phase/#cmd-phase-control-plane) command
+3. Static Pod manifest generation for control plane components can be invoked individually with the [`kubeadm init phase control-plane all`](/docs/reference/setup-tools/kubeadm/kubeadm-init-phase/#cmd-phase-control-plane) command
 
 #### API server
 
@@ -251,7 +251,7 @@ Other API server flags that are set unconditionally are:
     - `--requestheader-client-ca-file` to`front-proxy-ca.crt`
     - `--proxy-client-cert-file` to `front-proxy-client.crt`
     - `--proxy-client-key-file` to `front-proxy-client.key`
- - Other flags for securing the front proxy ([API Aggregation](https://github.com/kubernetes/community/blob/master/contributors/design-proposals/api-machinery/aggregated-api-servers.md)) communications:
+ - Other flags for securing the front proxy ([API Aggregation](/docs/concepts/extend-kubernetes/api-extension/apiserver-aggregation/)) communications:
     - `--requestheader-username-headers=X-Remote-User`
     - `--requestheader-group-headers=X-Remote-Group`
     - `--requestheader-extra-headers-prefix=X-Remote-Extra-`
@@ -305,7 +305,7 @@ into `/var/lib/kubelet/config/init/kubelet` file.
 
 The init configuration is used for starting the kubelet on this specific node, providing an alternative for the kubelet drop-in file;
 such configuration will be replaced by the kubelet base configuration as described in following steps.
-See [set Kubelet parameters via a config file](/docs/tasks/administer-cluster/kubelet-config-file) for additional info.
+See [set kubelet parameters via a config file](/docs/tasks/administer-cluster/kubelet-config-file) for additional information.
 
 Please note that:
 
@@ -314,6 +314,9 @@ Please note that:
 1. The kubelet configuration can be changed by passing a `KubeletConfiguration` object to `kubeadm init` or `kubeadm join` by using
    a configuration file `--config some-file.yaml`. The `KubeletConfiguration` object can be separated from other objects such
    as `InitConfiguration` using the `---` separator. For more details have a look at the `kubeadm config print-default` command.
+
+For more details about the `KubeletConfiguration` struct, take a look at the
+[`KubeletConfiguration` reference](/docs/reference/config-api/kubelet-config.v1beta1/).
 
 ### Wait for the control plane to come up
 
@@ -325,7 +328,8 @@ kubeadm relies on the kubelet to pull the control plane images and run them prop
 After the control plane is up, kubeadm completes the tasks described in following paragraphs.
 
 ### (optional) Write base kubelet configuration
-{{< feature-state for_k8s_version="v1.9" state="alpha" >}}
+
+{{< feature-state for_k8s_version="v1.11" state="beta" >}}
 
 If kubeadm is invoked with `--feature-gates=DynamicKubeletConfig`:
 
@@ -344,7 +348,7 @@ state and make new decisions based on that data.
 Please note that:
 
 1. Before saving the ClusterConfiguration, sensitive information like the token is stripped from the configuration
-2. Upload of master configuration can be invoked individually with the [`kubeadm init phase upload-config`](/docs/reference/setup-tools/kubeadm/kubeadm-init-phase/#cmd-phase-upload-config) command
+2. Upload of control plane node configuration can be invoked individually with the [`kubeadm init phase upload-config`](/docs/reference/setup-tools/kubeadm/kubeadm-init-phase/#cmd-phase-upload-config) command
 
 ### Mark the node as control-plane
 
@@ -355,7 +359,7 @@ As soon as the control plane is available, kubeadm executes following actions:
 
 Please note that:
 
-1. Mark control-plane phase phase can be invoked individually with the [`kubeadm init phase mark-control-plane`](/docs/reference/setup-tools/kubeadm/kubeadm-init-phase/#cmd-phase-mark-master) command
+1. Mark control-plane phase phase can be invoked individually with the [`kubeadm init phase mark-control-plane`](/docs/reference/setup-tools/kubeadm/kubeadm-init-phase/#cmd-phase-mark-control-plane) command
 
 ### Configure TLS-Bootstrapping for node joining
 
@@ -415,7 +419,7 @@ Additionally it creates a Role and a RoleBinding granting access to the ConfigMa
 
 Please note that:
 
-1. The access to the `cluster-info` ConfigMap _is not_ rate-limited. This may or may not be a problem if you expose your master
+1. The access to the `cluster-info` ConfigMap _is not_ rate-limited. This may or may not be a problem if you expose your cluster's API server
 to the internet; worst-case scenario here is a DoS attack where an attacker uses all the in-flight requests the kube-apiserver
 can handle to serving the `cluster-info` ConfigMap.
 
@@ -430,18 +434,20 @@ Please note that:
 
 A ServiceAccount for `kube-proxy` is created in the `kube-system` namespace; then kube-proxy is deployed as a DaemonSet:
 
-- The credentials (`ca.crt` and `token`) to the master come from the ServiceAccount
-- The location of the master comes from a ConfigMap
+- The credentials (`ca.crt` and `token`) to the control plane come from the ServiceAccount
+- The location (URL) of the API server comes from a ConfigMap
 - The `kube-proxy` ServiceAccount is bound to the privileges in the `system:node-proxier` ClusterRole
 
 #### DNS
 
-- In Kubernetes version 1.18 kube-dns usage with kubeadm is deprecated and will be removed in a future release
 - The CoreDNS service is named `kube-dns`. This is done to prevent any interruption
-in service when the user is switching the cluster DNS from kube-dns to CoreDNS or vice-versa
-the `--config` method described [here](/docs/reference/setup-tools/kubeadm/kubeadm-init-phase/#cmd-phase-addon)
-- A ServiceAccount for CoreDNS/kube-dns is created in the `kube-system` namespace.
-- The `kube-dns` ServiceAccount is bound to the privileges in the `system:kube-dns` ClusterRole
+  in service when the user is switching the cluster DNS from kube-dns to CoreDNS
+  the `--config` method described [here](/docs/reference/setup-tools/kubeadm/kubeadm-init-phase/#cmd-phase-addon).
+- A ServiceAccount for CoreDNS is created in the `kube-system` namespace.
+- The `coredns` ServiceAccount is bound to the privileges in the `system:coredns` ClusterRole
+
+In Kubernetes version 1.21, support for using `kube-dns` with kubeadm was removed.
+You can use CoreDNS with kubeadm even when the related Service is named `kube-dns`.
 
 ## kubeadm join phases internal design
 
@@ -499,10 +505,9 @@ when the connection with the cluster is established, kubeadm try to access the `
 
 ## TLS Bootstrap
 
-Once the cluster info are known, the file `bootstrap-kubelet.conf` is written, thus allowing kubelet to do TLS Bootstrapping
-(conversely until v.1.7 TLS bootstrapping were managed by kubeadm).
+Once the cluster info are known, the file `bootstrap-kubelet.conf` is written, thus allowing kubelet to do TLS Bootstrapping.
 
-The TLS bootstrap mechanism uses the shared token to temporarily authenticate with the Kubernetes Master to submit a certificate
+The TLS bootstrap mechanism uses the shared token to temporarily authenticate with the Kubernetes API server to submit a certificate
 signing request (CSR) for a locally created key pair.
 
 The request is then automatically approved and the operation completes saving `ca.crt` file and `kubelet.conf` file to be used
@@ -512,17 +517,17 @@ Please note that:
 
 - The temporary authentication is validated against the token saved during the `kubeadm init` process (or with additional tokens
   created with `kubeadm token`)
-- The temporary authentication resolve to a user member of  `system:bootstrappers:kubeadm:default-node-token` group which was granted
+- The temporary authentication resolve to a user member of `system:bootstrappers:kubeadm:default-node-token` group which was granted
   access to CSR api during the `kubeadm init` process
 - The automatic CSR approval is managed by the csrapprover controller, according with configuration done the `kubeadm init` process
 
 ### (optional) Write init kubelet configuration
 
-{{< feature-state for_k8s_version="v1.9" state="alpha" >}}
+{{< feature-state for_k8s_version="v1.11" state="beta" >}}
 
 If kubeadm is invoked with `--feature-gates=DynamicKubeletConfig`:
 
-1. Read the kubelet base configuration from the `kubelet-base-config-v1.9` ConfigMap in the `kube-system` namespace  using the
+1. Read the kubelet base configuration from the `kubelet-base-config-v1.x` ConfigMap in the `kube-system` namespace  using the
    Bootstrap Token credentials, and write it to disk as kubelet init configuration file  `/var/lib/kubelet/config/init/kubelet`
 2. As soon as kubelet starts with the Node's own credential (`/etc/kubernetes/kubelet.conf`), update current node configuration
    specifying that the source for the node/kubelet configuration is the above ConfigMap.

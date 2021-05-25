@@ -5,22 +5,21 @@ reviewers:
 - bsalamat
 title: Assigning Pods to Nodes
 content_type: concept
-weight: 50
+weight: 20
 ---
 
 
 <!-- overview -->
 
-You can constrain a {{< glossary_tooltip text="Pod" term_id="pod" >}} to only be able to run on particular 
-{{< glossary_tooltip text="Node(s)" term_id="node" >}}, or to prefer to run on particular nodes.
-There are several ways to do this, and the recommended approaches all use
-[label selectors](/docs/concepts/overview/working-with-objects/labels/) to make the selection.
+You can constrain a {{< glossary_tooltip text="Pod" term_id="pod" >}} so that it can only run on particular set of
+{{< glossary_tooltip text="Node(s)" term_id="node" >}}.
+There are several ways to do this and the recommended approaches all use
+[label selectors](/docs/concepts/overview/working-with-objects/labels/) to facilitate the selection.
 Generally such constraints are unnecessary, as the scheduler will automatically do a reasonable placement
-(e.g. spread your pods across nodes, not place the pod on a node with insufficient free resources, etc.)
-but there are some circumstances where you may want more control on a node where a pod lands, for example to ensure
+(e.g. spread your pods across nodes so as not place the pod on a node with insufficient free resources, etc.)
+but there are some circumstances where you may want to control which node the pod deploys to - for example to ensure
 that a pod ends up on a machine with an SSD attached to it, or to co-locate pods from two different
 services that communicate a lot into the same availability zone.
-
 
 
 <!-- body -->
@@ -73,7 +72,7 @@ verify that it worked by running `kubectl get pods -o wide` and looking at the
 ## Interlude: built-in node labels {#built-in-node-labels}
 
 In addition to labels you [attach](#step-one-attach-label-to-the-node), nodes come pre-populated
-with a standard set of labels. See [Well-Known Labels, Annotations and Taints](/docs/reference/kubernetes-api/labels-annotations-taints/) for a list of these.
+with a standard set of labels. See [Well-Known Labels, Annotations and Taints](/docs/reference/labels-annotations-taints/) for a list of these.
 
 {{< note >}}
 The value of these labels is cloud provider specific and is not guaranteed to be reliable.
@@ -120,12 +119,12 @@ pod is eligible to be scheduled on, based on labels on the node.
 
 There are currently two types of node affinity, called `requiredDuringSchedulingIgnoredDuringExecution` and
 `preferredDuringSchedulingIgnoredDuringExecution`. You can think of them as "hard" and "soft" respectively,
-in the sense that the former specifies rules that *must* be met for a pod to be scheduled onto a node (just like
+in the sense that the former specifies rules that *must* be met for a pod to be scheduled onto a node (similar to
 `nodeSelector` but using a more expressive syntax), while the latter specifies *preferences* that the scheduler
 will try to enforce but will not guarantee. The "IgnoredDuringExecution" part of the names means that, similar
 to how `nodeSelector` works, if labels on a node change at runtime such that the affinity rules on a pod are no longer
-met, the pod will still continue to run on the node. In the future we plan to offer
-`requiredDuringSchedulingRequiredDuringExecution` which will be just like `requiredDuringSchedulingIgnoredDuringExecution`
+met, the pod continues to run on the node. In the future we plan to offer
+`requiredDuringSchedulingRequiredDuringExecution` which will be identical to `requiredDuringSchedulingIgnoredDuringExecution`
 except that it will evict pods from nodes that cease to satisfy the pods' node affinity requirements.
 
 Thus an example of `requiredDuringSchedulingIgnoredDuringExecution` would be "only run the pod on nodes with Intel CPUs"
@@ -157,6 +156,49 @@ If you specify multiple `matchExpressions` associated with `nodeSelectorTerms`, 
 If you remove or change the label of the node where the pod is scheduled, the pod won't be removed. In other words, the affinity selection works only at the time of scheduling the pod.
 
 The `weight` field in `preferredDuringSchedulingIgnoredDuringExecution` is in the range 1-100. For each node that meets all of the scheduling requirements (resource request, RequiredDuringScheduling affinity expressions, etc.), the scheduler will compute a sum by iterating through the elements of this field and adding "weight" to the sum if the node matches the corresponding MatchExpressions. This score is then combined with the scores of other priority functions for the node. The node(s) with the highest total score are the most preferred.
+
+#### Node affinity per scheduling profile
+
+{{< feature-state for_k8s_version="v1.20" state="beta" >}}
+
+When configuring multiple [scheduling profiles](/docs/reference/scheduling/config/#multiple-profiles), you can associate
+a profile with a Node affinity, which is useful if a profile only applies to a specific set of Nodes.
+To do so, add an `addedAffinity` to the args of the [`NodeAffinity` plugin](/docs/reference/scheduling/config/#scheduling-plugins)
+in the [scheduler configuration](/docs/reference/scheduling/config/). For example:
+
+```yaml
+apiVersion: kubescheduler.config.k8s.io/v1beta1
+kind: KubeSchedulerConfiguration
+
+profiles:
+  - schedulerName: default-scheduler
+  - schedulerName: foo-scheduler
+    pluginConfig:
+      - name: NodeAffinity
+        args:
+          addedAffinity:
+            requiredDuringSchedulingIgnoredDuringExecution:
+              nodeSelectorTerms:
+              - matchExpressions:
+                - key: scheduler-profile
+                  operator: In
+                  values:
+                  - foo
+```
+
+The `addedAffinity` is applied to all Pods that set `.spec.schedulerName` to `foo-scheduler`, in addition to the
+NodeAffinity specified in the PodSpec.
+That is, in order to match the Pod, Nodes need to satisfy `addedAffinity` and the Pod's `.spec.NodeAffinity`.
+
+Since the `addedAffinity` is not visible to end users, its behavior might be unexpected to them. We
+recommend to use node labels that have clear correlation with the profile's scheduler name.
+
+{{< note >}}
+The DaemonSet controller, which [creates Pods for DaemonSets](/docs/concepts/workloads/controllers/daemonset/#scheduled-by-default-scheduler)
+is not aware of scheduling profiles. For this reason, it is recommended that you keep a scheduler profile, such as the
+`default-scheduler`, without any `addedAffinity`. Then, the Daemonset's Pod template should use this scheduler name.
+Otherwise, some Pods created by the Daemonset controller might remain unschedulable.
+{{< /note >}}
 
 ### Inter-pod affinity and anti-affinity
 
@@ -203,7 +245,7 @@ as at least one already-running pod that has a label with key "security" and val
 on node N if node N has a label with key `topology.kubernetes.io/zone` and some value V
 such that there is at least one node in the cluster with key `topology.kubernetes.io/zone` and
 value V that is running a pod that has a label with key "security" and value "S1".) The pod anti-affinity
-rule says that the pod cannot be scheduled onto a node if that node is in the same zone as a pod with
+rule says that the pod should not be scheduled onto a node if that node is in the same zone as a pod with
 label having key "security" and value "S2". See the
 [design doc](https://git.k8s.io/community/contributors/design-proposals/scheduling/podaffinity.md)
 for many more examples of pod affinity and anti-affinity, both the `requiredDuringSchedulingIgnoredDuringExecution`
@@ -218,7 +260,7 @@ for performance and security reasons, there are some constraints on topologyKey:
 and `preferredDuringSchedulingIgnoredDuringExecution`.
 2. For pod anti-affinity, empty `topologyKey` is also not allowed in both `requiredDuringSchedulingIgnoredDuringExecution`
 and `preferredDuringSchedulingIgnoredDuringExecution`.
-3. For `requiredDuringSchedulingIgnoredDuringExecution` pod anti-affinity, the admission controller `LimitPodHardAntiAffinityTopology` was introduced to limit `topologyKey` to `kubernetes.io/hostname`. If you want to make it available for custom topologies, you may modify the admission controller, or simply disable it.
+3. For `requiredDuringSchedulingIgnoredDuringExecution` pod anti-affinity, the admission controller `LimitPodHardAntiAffinityTopology` was introduced to limit `topologyKey` to `kubernetes.io/hostname`. If you want to make it available for custom topologies, you may modify the admission controller, or disable it.
 4. Except for the above cases, the `topologyKey` can be any legal label-key.
 
 In addition to `labelSelector` and `topologyKey`, you can optionally specify a list `namespaces`
@@ -227,6 +269,18 @@ If omitted or empty, it defaults to the namespace of the pod where the affinity/
 
 All `matchExpressions` associated with `requiredDuringSchedulingIgnoredDuringExecution` affinity and anti-affinity
 must be satisfied for the pod to be scheduled onto a node.
+
+#### Namespace selector
+{{< feature-state for_k8s_version="v1.21" state="alpha" >}}
+
+Users can also select matching namespaces using `namespaceSelector`, which is a label query over the set of namespaces.
+The affinity term is applied to the union of the namespaces selected by `namespaceSelector` and the ones listed in the `namespaces` field.
+Note that an empty `namespaceSelector` ({}) matches all namespaces, while a null or empty `namespaces` list and 
+null `namespaceSelector` means "this pod's namespace".
+
+This feature is alpha and disabled by default. You can enable it by setting the
+[feature gate](/docs/reference/command-line-tools-reference/feature-gates/)
+`PodAffinityNamespaceSelector` in both kube-apiserver and kube-scheduler.
 
 #### More Practical Use-cases
 

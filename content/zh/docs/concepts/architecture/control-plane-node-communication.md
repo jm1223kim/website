@@ -15,7 +15,7 @@ aliases:
 <!-- overview -->
 
 <!--
-This document catalogs the communication paths between the control plane (really the apiserver) and the Kubernetes cluster. The intent is to allow users to customize their installation to harden the network configuration such that the cluster can be run on an untrusted network (or on fully public IPs on a cloud provider).
+This document catalogs the communication paths between the control plane (apiserver) and the Kubernetes cluster. The intent is to allow users to customize their installation to harden the network configuration such that the cluster can be run on an untrusted network (or on fully public IPs on a cloud provider).
 -->
 本文列举控制面节点（确切说是 API 服务器）和 Kubernetes 集群之间的通信路径。
 目的是为了让用户能够自定义他们的安装，以实现对网络配置的加固，使得集群能够在不可信的网络上
@@ -24,18 +24,19 @@ This document catalogs the communication paths between the control plane (really
 <!-- body -->
 <!--
 ## Node to Control Plane
-Kubernetes has a "hub-and-spoke" API pattern. All API usage from nodes (or the pods they run) terminate at the apiserver (none of the other control plane components are designed to expose remote services). The apiserver is configured to listen for remote connections on a secure HTTPS port (typically 443) with one or more forms of client [authentication](/docs/reference/access-authn-authz/authentication/) enabled.
+Kubernetes has a "hub-and-spoke" API pattern. All API usage from nodes (or the pods they run) terminate at the apiserver. None of the other control plane components are designed to expose remote services. The apiserver is configured to listen for remote connections on a secure HTTPS port (typically 443) with one or more forms of client [authentication](/docs/reference/access-authn-authz/authentication/) enabled.
 One or more forms of [authorization](/docs/reference/access-authn-authz/authorization/) should be enabled, especially if [anonymous requests](/docs/reference/access-authn-authz/authentication/#anonymous-requests) or [service account tokens](/docs/reference/access-authn-authz/authentication/#service-account-tokens) are allowed.
 -->
 ## 节点到控制面
 
 Kubernetes 采用的是中心辐射型（Hub-and-Spoke）API 模式。
-所有从集群（或所运行的 Pods）发出的 API 调用都终止于 apiserver（其它控制面组件都没有被设计为可暴露远程服务）。
-apiserver 被配置为在一个安全的 HTTPS 端口（443）上监听远程连接请求，
-并启用一种或多种形式的客户端[身份认证](/docs/reference/access-authn-authz/authentication/)机制。
+所有从集群（或所运行的 Pods）发出的 API 调用都终止于 apiserver。
+其它控制面组件都没有被设计为可暴露远程服务。
+apiserver 被配置为在一个安全的 HTTPS 端口（通常为 443）上监听远程连接请求，
+并启用一种或多种形式的客户端[身份认证](/zh/docs/reference/access-authn-authz/authentication/)机制。
 一种或多种客户端[鉴权机制](/zh/docs/reference/access-authn-authz/authorization/)应该被启用，
-特别是在允许使用[匿名请求](/docs/reference/access-authn-authz/authentication/#anonymous-requests)
-或[服务账号令牌](/docs/reference/access-authn-authz/authentication/#service-account-tokens)的时候。
+特别是在允许使用[匿名请求](/zh/docs/reference/access-authn-authz/authentication/#anonymous-requests)
+或[服务账号令牌](/zh/docs/reference/access-authn-authz/authentication/#service-account-tokens)的时候。
 
 <!--
 Nodes should be provisioned with the public root certificate for the cluster such that they can connect securely to the apiserver along with valid client credentials. A good approach is that the client credentials provided to the kubelet are in the form of a client certificate. See [kubelet TLS bootstrapping](/docs/reference/command-line-tools-reference/kubelet-tls-bootstrapping/) for automated provisioning of kubelet client certificates.
@@ -47,13 +48,13 @@ Nodes should be provisioned with the public root certificate for the cluster suc
 
 <!--
 Pods that wish to connect to the apiserver can do so securely by leveraging a service account so that Kubernetes will automatically inject the public root certificate and a valid bearer token into the pod when it is instantiated.
-The `kubernetes` service (in all namespaces) is configured with a virtual IP address that is redirected (via kube-proxy) to the HTTPS endpoint on the apiserver.
+The `kubernetes` service (in `default` namespace) is configured with a virtual IP address that is redirected (via kube-proxy) to the HTTPS endpoint on the apiserver.
 
 The control plane components also communicate with the cluster apiserver over the secure port.
 -->
 想要连接到 apiserver 的 Pod 可以使用服务账号安全地进行连接。
 当 Pod 被实例化时，Kubernetes 自动把公共根证书和一个有效的持有者令牌注入到 Pod 里。
-`kubernetes` 服务（位于所有名字空间中）配置了一个虚拟 IP 地址，用于（通过 kube-proxy）转发
+`kubernetes` 服务（位于 `default` 名字空间中）配置了一个虚拟 IP 地址，用于（通过 kube-proxy）转发
 请求到 apiserver 的 HTTPS 末端。
 
 控制面组件也通过安全端口与集群的 apiserver 通信。
@@ -61,7 +62,8 @@ The control plane components also communicate with the cluster apiserver over th
 <!--
 As a result, the default operating mode for connections from the nodes and pods running on the nodes to the control plane is secured by default and can run over untrusted and/or public networks.
 -->
-这样，从集群节点和节点上运行的 Pod 到控制面的连接的缺省操作模式即是安全的，能够在不可信的网络或公网上运行。
+这样，从集群节点和节点上运行的 Pod 到控制面的连接的缺省操作模式即是安全的，
+能够在不可信的网络或公网上运行。
 
 <!--
 ## Control Plane to node
@@ -83,7 +85,7 @@ The connections from the apiserver to the kubelet are used for:
 * Attaching (through kubectl) to running pods.
 * Providing the kubelet's port-forwarding functionality.
 
-These connections terminate at the kubelet's HTTPS endpoint. By default, the apiserver does not verify the kubelet's serving certificate, which makes the connection subject to man-in-the-middle attacks, and **unsafe** to run over untrusted and/or public networks.
+These connections terminate at the kubelet's HTTPS endpoint. By default, the apiserver does not verify the kubelet's serving certificate, which makes the connection subject to man-in-the-middle attacks and **unsafe** to run over untrusted and/or public networks.
 -->
 ### API 服务器到 kubelet
 
@@ -120,7 +122,6 @@ kubelet 之间使用 [SSH 隧道](#ssh-tunnels)。
 
 The connections from the apiserver to a node, pod, or service default to plain HTTP connections and are therefore neither authenticated nor encrypted. They can be run over a secure HTTPS connection by prefixing `https:` to the node, pod, or service name in the API URL, but they will not validate the certificate provided by the HTTPS endpoint nor provide client credentials so while the connection will be encrypted, it will not provide any guarantees of integrity. These connections **are not currently safe** to run over untrusted and/or public networks.
 -->
-
 ### apiserver 到节点、Pod 和服务
 
 从 apiserver 到节点、Pod 或服务的连接默认为纯 HTTP 方式，因此既没有认证，也没有加密。
@@ -137,7 +138,6 @@ This tunnel ensures that the traffic is not exposed outside of the network in wh
 
 SSH tunnels are currently deprecated so you shouldn't opt to use them unless you know what you are doing. The Konnectivity service is a replacement for this communication channel.
 -->
-
 ### SSH 隧道 {#ssh-tunnels}
 
 Kubernetes 支持使用 SSH 隧道来保护从控制面到节点的通信路径。在这种配置下，apiserver
@@ -153,12 +153,11 @@ Konnectivity 服务是对此通信通道的替代品。
 
 {{< feature-state for_k8s_version="v1.18" state="beta" >}}
 
-As a replacement to the SSH tunnels, the Konnectivity service provides TCP level proxy for the control plane to cluster communication. The Konnectivity service consists of two parts: the Konnectivity server and the Konnectivity agents, running in the control plane network and the nodes network respectively. The Konnectivity agents initiate connections to the Konnectivity server and maintain the network connections.
+As a replacement to the SSH tunnels, the Konnectivity service provides TCP level proxy for the control plane to cluster communication. The Konnectivity service consists of two parts: the Konnectivity server in the control plane network and the Konnectivity agents in the nodes network. The Konnectivity agents initiate connections to the Konnectivity server and maintain the network connections.
 After enabling the Konnectivity service, all control plane to nodes traffic goes through these connections.
 
 Follow the [Konnectivity service task](/docs/tasks/extend-kubernetes/setup-konnectivity/) to set up the Konnectivity service in your cluster.
 -->
-
 ### Konnectivity 服务
 
 {{< feature-state for_k8s_version="v1.18" state="beta" >}}
@@ -168,5 +167,6 @@ Konnectivity 服务包含两个部分：Konnectivity 服务器和 Konnectivity �
 控制面网络和节点网络中。Konnectivity 代理建立并维持到 Konnectivity 服务器的网络连接。
 启用 Konnectivity 服务之后，所有控制面到节点的通信都通过这些连接传输。
 
-请浏览 [Konnectivity 服务任务](/docs/tasks/extend-kubernetes/setup-konnectivity/)
+请浏览 [Konnectivity 服务任务](/zh/docs/tasks/extend-kubernetes/setup-konnectivity/)
 在你的集群中配置 Konnectivity 服务。
+

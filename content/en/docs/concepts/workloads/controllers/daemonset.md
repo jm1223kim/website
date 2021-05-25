@@ -87,12 +87,6 @@ When the two are specified the result is ANDed.
 
 If the `.spec.selector` is specified, it must match the `.spec.template.metadata.labels`. Config with these not matching will be rejected by the API.
 
-Also you should not normally create any Pods whose labels match this selector, either directly, via
-another DaemonSet, or via another workload resource such as ReplicaSet.  Otherwise, the DaemonSet
-{{< glossary_tooltip term_id="controller" >}} will think that those Pods were created by it.
-Kubernetes will not stop you from doing this. One case where you might want to do this is manually
-create a Pod with a different value on a node for testing.
-
 ### Running Pods on select Nodes
 
 If you specify a `.spec.template.spec.nodeSelector`, then the DaemonSet controller will
@@ -153,8 +147,8 @@ the related features.
 | ---------------------------------------- | ---------- | ------- | ----------- |
 | `node.kubernetes.io/not-ready`           | NoExecute  | 1.13+   | DaemonSet pods will not be evicted when there are node problems such as a network partition. |
 | `node.kubernetes.io/unreachable`         | NoExecute  | 1.13+   | DaemonSet pods will not be evicted when there are node problems such as a network partition. |
-| `node.kubernetes.io/disk-pressure`       | NoSchedule | 1.8+    | |
-| `node.kubernetes.io/memory-pressure`     | NoSchedule | 1.8+    | |
+| `node.kubernetes.io/disk-pressure`       | NoSchedule | 1.8+    | DaemonSet pods tolerate disk-pressure attributes by default scheduler. |
+| `node.kubernetes.io/memory-pressure`     | NoSchedule | 1.8+    | DaemonSet pods tolerate memory-pressure attributes by default scheduler. |
 | `node.kubernetes.io/unschedulable`       | NoSchedule | 1.12+   | DaemonSet pods tolerate unschedulable attributes by default scheduler. |
 | `node.kubernetes.io/network-unavailable` | NoSchedule | 1.12+   | DaemonSet pods, who uses host network, tolerate network-unavailable attributes by default scheduler. |
 

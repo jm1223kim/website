@@ -6,22 +6,23 @@ content_type: task
 weight: 30
 ---
 
-<!-- ---
+<!--
 reviewers:
 - sig-cluster-lifecycle
 title: Creating a cluster with kubeadm
 content_type: task
 weight: 30
---- -->
+-->
 
 <!-- overview -->
 
 <!--
-<img src="https://raw.githubusercontent.com/kubernetes/kubeadm/master/logos/stacked/color/kubeadm-stacked-color.png" align="right" width="150px">Creating a minimum viable Kubernetes cluster that conforms to best practices. In fact, you can use `kubeadm` to set up a cluster that will pass the [Kubernetes Conformance tests](https://kubernetes.io/blog/2017/10/software-conformance-certification).
+<img src="https://raw.githubusercontent.com/kubernetes/kubeadm/master/logos/stacked/color/kubeadm-stacked-color.png" align="right" width="150px">Using `kubeadm`, you can create a minimum viable Kubernetes cluster that conforms to best practices. In fact, you can use `kubeadm` to set up a cluster that will pass the [Kubernetes Conformance tests](https://kubernetes.io/blog/2017/10/software-conformance-certification).
 `kubeadm` also supports other cluster
 lifecycle functions, such as [bootstrap tokens](/docs/reference/access-authn-authz/bootstrap-tokens/) and cluster upgrades.
 -->
-<img src="https://raw.githubusercontent.com/kubernetes/kubeadm/master/logos/stacked/color/kubeadm-stacked-color.png" align="right" width="150px">创建一个符合最佳实践的最小化 Kubernetes 集群。事实上，你可以使用 `kubeadm` 配置一个通过 [Kubernetes 一致性测试](https://kubernetes.io/blog/2017/10/software-conformance-certification) 的集群。
+<img src="https://raw.githubusercontent.com/kubernetes/kubeadm/master/logos/stacked/color/kubeadm-stacked-color.png" align="right" width="150px">使用 `kubeadm`，你
+能创建一个符合最佳实践的最小化 Kubernetes 集群。事实上，你可以使用 `kubeadm` 配置一个通过 [Kubernetes 一致性测试](https://kubernetes.io/blog/2017/10/software-conformance-certification) 的集群。
 `kubeadm` 还支持其他集群生命周期功能，
 例如 [启动引导令牌](/zh/docs/reference/access-authn-authz/bootstrap-tokens/) 和集群升级。
 
@@ -127,7 +128,7 @@ Any commands under `kubeadm alpha` are, by definition, supported on an alpha lev
 <!--
 ### Installing kubeadm on your hosts
 -->
-### 在你的主机上安装安装 kubeadm
+### 在你的主机上安装 kubeadm
 
 <!--
 See ["Installing kubeadm"](/docs/setup/production-environment/tools/kubeadm/install-kubeadm/).
@@ -265,14 +266,14 @@ kubeadm 不支持将没有 `--control-plane-endpoint` 参数的单个控制平�
 ### 更多信息
 
 <!--
-For more information about `kubeadm init` arguments, see the [kubeadm reference guide](/docs/reference/setup-tools/kubeadm/kubeadm/).
+For more information about `kubeadm init` arguments, see the [kubeadm reference guide](/docs/reference/setup-tools/kubeadm/).
 -->
-有关 `kubeadm init` 参数的更多信息，请参见 [kubeadm 参考指南](/zh/docs/reference/setup-tools/kubeadm/kubeadm/)。
+有关 `kubeadm init` 参数的更多信息，请参见 [kubeadm 参考指南](/zh/docs/reference/setup-tools/kubeadm/)。
 
 <!--
-For a complete list of configuration options, see the [configuration file documentation](/docs/reference/setup-tools/kubeadm/kubeadm-init/#config-file).
+To configure `kubeadm init` with a configuration file see [Using kubeadm init with a configuration file](/docs/reference/setup-tools/kubeadm/kubeadm-init/#config-file).
 -->
-有关配置选项的完整列表，请参见[配置文件文档](/zh/docs/reference/setup-tools/kubeadm/kubeadm-init/#config-file)。
+要使用配置文件配置 `kubeadm init` 命令，请参见[带配置文件使用 kubeadm init](/zh/docs/reference/setup-tools/kubeadm/kubeadm-init/#config-file)。
 
 <!--
 To customize control plane components, including optional IPv6 assignment to liveness probe for control plane components and etcd server, provide extra arguments to each component as documented in [custom arguments](/docs/setup/production-environment/tools/kubeadm/control-plane-flags/).
@@ -296,63 +297,14 @@ have container image support for this architecture.
 `kubeadm init` first runs a series of prechecks to ensure that the machine
 is ready to run Kubernetes. These prechecks expose warnings and exit on errors. `kubeadm init`
 then downloads and installs the cluster control plane components. This may take several minutes.
-The output should look like:
+After it finishes you should see:
 -->
 `kubeadm init` 首先运行一系列预检查以确保机器
 准备运行 Kubernetes。这些预检查会显示警告并在错误时退出。然后 `kubeadm init`
 下载并安装集群控制平面组件。这可能会需要几分钟。
-输出应如下所示：
+完成之后你应该看到：
 
 ```none
-[init] Using Kubernetes version: vX.Y.Z
-[preflight] Running pre-flight checks
-[preflight] Pulling images required for setting up a Kubernetes cluster
-[preflight] This might take a minute or two, depending on the speed of your internet connection
-[preflight] You can also perform this action in beforehand using 'kubeadm config images pull'
-[kubelet-start] Writing kubelet environment file with flags to file "/var/lib/kubelet/kubeadm-flags.env"
-[kubelet-start] Writing kubelet configuration to file "/var/lib/kubelet/config.yaml"
-[kubelet-start] Activating the kubelet service
-[certs] Using certificateDir folder "/etc/kubernetes/pki"
-[certs] Generating "etcd/ca" certificate and key
-[certs] Generating "etcd/server" certificate and key
-[certs] etcd/server serving cert is signed for DNS names [kubeadm-cp localhost] and IPs [10.138.0.4 127.0.0.1 ::1]
-[certs] Generating "etcd/healthcheck-client" certificate and key
-[certs] Generating "etcd/peer" certificate and key
-[certs] etcd/peer serving cert is signed for DNS names [kubeadm-cp localhost] and IPs [10.138.0.4 127.0.0.1 ::1]
-[certs] Generating "apiserver-etcd-client" certificate and key
-[certs] Generating "ca" certificate and key
-[certs] Generating "apiserver" certificate and key
-[certs] apiserver serving cert is signed for DNS names [kubeadm-cp kubernetes kubernetes.default kubernetes.default.svc kubernetes.default.svc.cluster.local] and IPs [10.96.0.1 10.138.0.4]
-[certs] Generating "apiserver-kubelet-client" certificate and key
-[certs] Generating "front-proxy-ca" certificate and key
-[certs] Generating "front-proxy-client" certificate and key
-[certs] Generating "sa" key and public key
-[kubeconfig] Using kubeconfig folder "/etc/kubernetes"
-[kubeconfig] Writing "admin.conf" kubeconfig file
-[kubeconfig] Writing "kubelet.conf" kubeconfig file
-[kubeconfig] Writing "controller-manager.conf" kubeconfig file
-[kubeconfig] Writing "scheduler.conf" kubeconfig file
-[control-plane] Using manifest folder "/etc/kubernetes/manifests"
-[control-plane] Creating static Pod manifest for "kube-apiserver"
-[control-plane] Creating static Pod manifest for "kube-controller-manager"
-[control-plane] Creating static Pod manifest for "kube-scheduler"
-[etcd] Creating static Pod manifest for local etcd in "/etc/kubernetes/manifests"
-[wait-control-plane] Waiting for the kubelet to boot up the control plane as static Pods from directory "/etc/kubernetes/manifests". This can take up to 4m0s
-[apiclient] All control plane components are healthy after 31.501735 seconds
-[uploadconfig] storing the configuration used in ConfigMap "kubeadm-config" in the "kube-system" Namespace
-[kubelet] Creating a ConfigMap "kubelet-config-X.Y" in namespace kube-system with the configuration for the kubelets in the cluster
-[patchnode] Uploading the CRI Socket information "/var/run/dockershim.sock" to the Node API object "kubeadm-cp" as an annotation
-[mark-control-plane] Marking the node kubeadm-cp as control-plane by adding the label "node-role.kubernetes.io/master=''"
-[mark-control-plane] Marking the node kubeadm-cp as control-plane by adding the taints [node-role.kubernetes.io/master:NoSchedule]
-[bootstrap-token] Using token: <token>
-[bootstrap-token] Configuring bootstrap tokens, cluster-info ConfigMap, RBAC Roles
-[bootstraptoken] configured RBAC rules to allow Node Bootstrap tokens to post CSRs in order for nodes to get long term certificate credentials
-[bootstraptoken] configured RBAC rules to allow the csrapprover controller automatically approve CSRs from a Node Bootstrap Token
-[bootstraptoken] configured RBAC rules to allow certificate rotation for all node client certificates in the cluster
-[bootstraptoken] creating the "cluster-info" ConfigMap in the "kube-public" namespace
-[addons] Applied essential addon: CoreDNS
-[addons] Applied essential addon: kube-proxy
-
 Your Kubernetes control-plane has initialized successfully!
 
 To start using your cluster, you need to run the following as a regular user:
@@ -393,6 +345,20 @@ Alternatively, if you are the `root` user, you can run:
 ```bash
 export KUBECONFIG=/etc/kubernetes/admin.conf
 ```
+
+{{< warning >}}
+<!--
+Kubeadm signs the certificate in the `admin.conf` to have `Subject: O = system:masters, CN = kubernetes-admin`.
+`system:masters` is a break-glass, super user group that bypasses the authorization layer (e.g. RBAC).
+Do not share the `admin.conf` file with anyone and instead grant users custom permissions by generating
+them a kubeconfig file using the `kubeadm kubeconfig user` command.
+-->
+kubeadm 对 `admin.conf` 中的证书进行签名时，将其配置为
+`Subject: O = system:masters, CN = kubernetes-admin`。
+`system:masters` 是一个例外的、超级用户组，可以绕过鉴权层（例如 RBAC）。
+不要将 `admin.conf` 文件与任何人共享，应该使用 `kubeadm kubeconfig user`
+命令为其他用户生成 kubeconfig 文件，完成对他们的定制授权。
+{{< /warning >}}
 
 <!--
 Make a record of the `kubeadm join` command that `kubeadm init` outputs. You
@@ -476,13 +442,14 @@ Cluster DNS (CoreDNS) will not start up before a network is installed.**
 {{< /caution >}}
 
 <!--
-Currently Calico is the only CNI plugin that the kubeadm project performs e2e tests against.
+Kubeadm should be CNI agnostic and the validation of CNI providers is out of the scope of our current e2e testing.
 If you find an issue related to a CNI plugin you should log a ticket in its respective issue
 tracker instead of the kubeadm or kubernetes issue trackers.
 -->
 {{< note >}}
-目前 Calico 是 kubeadm 项目中执行 e2e 测试的唯一 CNI 插件。
-如果你发现与 CNI 插件相关的问题，应在其各自的问题跟踪器中记录而不是在 kubeadm 或 kubernetes 问题跟踪器中记录。
+kubeadm 应该是与 CNI 无关的，对 CNI 驱动进行验证目前不在我们的端到端测试范畴之内。
+如果你发现与 CNI 插件相关的问题，应在其各自的问题跟踪器中记录而不是在 kubeadm
+或 kubernetes 问题跟踪器中记录。
 {{< /note >}}
 
 <!--
@@ -850,7 +817,7 @@ options.
 * Verify that your cluster is running properly with [Sonobuoy](https://github.com/heptio/sonobuoy)
 * <a id="lifecycle" />See [Upgrading kubeadm clusters](/docs/tasks/administer-cluster/kubeadm/kubeadm-upgrade/)
   for details about upgrading your cluster using `kubeadm`.
-* Learn about advanced `kubeadm` usage in the [kubeadm reference documentation](/docs/reference/setup-tools/kubeadm/kubeadm)
+* Learn about advanced `kubeadm` usage in the [kubeadm reference documentation](/docs/reference/setup-tools/kubeadm)
 * Learn more about Kubernetes [concepts](/docs/concepts/) and [`kubectl`](/docs/reference/kubectl/overview/).
 * See the [Cluster Networking](/docs/concepts/cluster-administration/networking/) page for a bigger list
   of Pod network add-ons.
@@ -864,7 +831,7 @@ options.
 -->
 * 使用 [Sonobuoy](https://github.com/heptio/sonobuoy) 验证集群是否正常运行
 * <a id="lifecycle" />有关使用kubeadm升级集群的详细信息，请参阅[升级 kubeadm 集群](/zh/docs/tasks/administer-cluster/kubeadm/kubeadm-upgrade/)。
-* 在[kubeadm 参考文档](/zh/docs/reference/setup-tools/kubeadm/kubeadm)中了解有关高级 `kubeadm` 用法的信息
+* 在[kubeadm 参考文档](/zh/docs/reference/setup-tools/kubeadm)中了解有关高级 `kubeadm` 用法的信息
 * 了解有关Kubernetes[概念](/zh/docs/concepts/)和[`kubectl`](/zh/docs/reference/kubectl/overview/)的更多信息。
 * 有关Pod网络附加组件的更多列表，请参见[集群网络](/zh/docs/concepts/cluster-administration/networking/)页面。
 * <a id="other-addons" />请参阅[附加组件列表](/zh/docs/concepts/cluster-administration/addons/)以探索其他附加组件，
@@ -955,7 +922,7 @@ Workarounds:
 * Regularly [back up etcd](https://coreos.com/etcd/docs/latest/admin_guide.html). The
   etcd data directory configured by kubeadm is at `/var/lib/etcd` on the control-plane node.
 -->
-* 定期[备份etcd](https://coreos.com/etcd/docs/latest/admin_guide.html)。
+* 定期[备份 etcd](https://coreos.com/etcd/docs/latest/admin_guide.html)。
   kubeadm 配置的 etcd 数据目录位于控制平面节点上的 `/var/lib/etcd` 中。
 
 <!--
@@ -1002,4 +969,4 @@ supports your chosen platform.
 If you are running into difficulties with kubeadm, please consult our [troubleshooting docs](/docs/setup/production-environment/tools/kubeadm/troubleshooting-kubeadm/).
 -->
 
-如果你在使用kubeadm时遇到困难，请查阅我们的[故障排除文档](/zh/docs/setup/production-environment/tools/kubeadm/troubleshooting-kubeadm/)。
+如果你在使用 kubeadm 时遇到困难，请查阅我们的[故障排除文档](/zh/docs/setup/production-environment/tools/kubeadm/troubleshooting-kubeadm/)。

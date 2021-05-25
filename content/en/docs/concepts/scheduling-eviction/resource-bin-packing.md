@@ -5,7 +5,7 @@ reviewers:
 - ahg-g
 title: Resource Bin Packing for Extended Resources
 content_type: concept
-weight: 50
+weight: 80
 ---
 
 <!-- overview -->
@@ -82,7 +82,7 @@ requested the score value must be reversed as follows.
 ```yaml
 shape:
   - utilization: 0
-    score: 100
+    score: 10
   - utilization: 100
     score: 0
 ```

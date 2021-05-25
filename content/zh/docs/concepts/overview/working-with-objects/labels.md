@@ -162,7 +162,7 @@ Three kinds of operators are admitted `=`,`==`,`!=`. The first two represent _eq
 
 _基于等值_ 或 _基于不等值_ 的需求允许按标签键和值进行过滤。
 匹配对象必须满足所有指定的标签约束，尽管它们也可能具有其他标签。
-可接受的运算符有`=`、`==` 和 `！=` 三种。 
+可接受的运算符有`=`、`==` 和 `!=` 三种。 
 前两个表示 _相等_（并且只是同义词），而后者表示 _不相等_。例如：
 
 ```
@@ -221,17 +221,17 @@ partition
 ```
 
 <!--
-The first example selects all resources with key equal to `environment` and value equal to `production` or `qa`.
-The second example selects all resources with key equal to `tier` and values other than `frontend` and `backend`, and all resources with no labels with the `tier` key.
-The third example selects all resources including a label with key `partition`; no values are checked.
-The fourth example selects all resources without a label with key `partition`; no values are checked.
+* The first example selects all resources with key equal to `environment` and value equal to `production` or `qa`.
+* The second example selects all resources with key equal to `tier` and values other than `frontend` and `backend`, and all resources with no labels with the `tier` key.
+* The third example selects all resources including a label with key `partition`; no values are checked.
+* The fourth example selects all resources without a label with key `partition`; no values are checked.
 Similarly the comma separator acts as an _AND_ operator. So filtering resources with a `partition` key (no matter the value) and with `environment` different than  `qa` can be achieved using `partition,environment notin (qa)`.
 -->
 
-第一个示例选择了所有键等于 `environment` 并且值等于 `production` 或者 `qa` 的资源。
-第二个示例选择了所有键等于 `tier` 并且值不等于 `frontend` 或者 `backend` 的资源，以及所有没有 `tier` 键标签的资源。
-第三个示例选择了所有包含了有 `partition` 标签的资源；没有校验它的值。
-第四个示例选择了所有没有 `partition` 标签的资源；没有校验它的值。
+* 第一个示例选择了所有键等于 `environment` 并且值等于 `production` 或者 `qa` 的资源。
+* 第二个示例选择了所有键等于 `tier` 并且值不等于 `frontend` 或者 `backend` 的资源，以及所有没有 `tier` 键标签的资源。
+* 第三个示例选择了所有包含了有 `partition` 标签的资源；没有校验它的值。
+* 第四个示例选择了所有没有 `partition` 标签的资源；没有校验它的值。
 类似地，逗号分隔符充当 _与_ 运算符。因此，使用 `partition` 键（无论为何值）和
 `environment` 不同于 `qa` 来过滤资源可以使用 `partition, environment notin（qa)` 来实现。
 
@@ -255,7 +255,7 @@ LIST and WATCH operations may specify label selectors to filter the sets of obje
 -->
 ### LIST 和 WATCH 过滤
 
-LIST and WATCH 操作可以使用查询参数指定标签选择算符过滤一组对象。
+LIST 和 WATCH 操作可以使用查询参数指定标签选择算符过滤一组对象。
 两种需求都是允许的。（这里显示的是它们出现在 URL 查询字符串中）
 
 <!--

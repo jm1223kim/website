@@ -108,7 +108,7 @@ Once you have a Linux-based Kubernetes control-plane node you are ready to choos
           "Network": "10.244.0.0/16",
           "Backend": {
             "Type": "vxlan",
-            "VNI" : 4096,
+            "VNI": 4096,
             "Port": 4789
           }
         }
@@ -136,7 +136,7 @@ Once you have a Linux-based Kubernetes control-plane node you are ready to choos
          "Network": "10.244.0.0/16",
          "Backend": {
             "Type": "vxlan",
-            "VNI" : 4096,
+            "VNI": 4096,
             "Port": 4789
        }
    }
@@ -269,10 +269,10 @@ to do so are available at [Install Docker Engine - Enterprise on Windows Servers
 All code snippets in Windows sections are to be run in a PowerShell environment
 with elevated permissions (Administrator) on the Windows worker node.
 -->
-### 加入 Windows 工作节点   {joiniing-a-windows-worker-node}
+### 加入 Windows 工作节点   {#joining-a-windows-worker-node}
 
 你必须安装 `Containers` 功能特性并安装 Docker 工具。相关的指令可以在
-[Install Docker Engine - Enterprise on Windows Servers](https://docs.mirantis.com/docker-enterprise/v3.1/dockeree-products/docker-engine-enterprise/dee-windows.html)
+[Install Docker Engine - Enterprise on Windows Servers](https://hub.docker.com/editions/enterprise/docker-ee-server-windows)
 处找到。
 
 Windows 节的所有代码片段都需要在 PowerShell 环境中执行，并且要求在

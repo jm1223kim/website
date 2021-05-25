@@ -89,7 +89,7 @@ volumeBindingMode: Immediate
 등에 대한 완전한 재량권을 가진다. [kubernetes-sigs/sig-storage-lib-external-provisioner](https://github.com/kubernetes-sigs/sig-storage-lib-external-provisioner)
 리포지터리에는 대량의 사양을 구현하는 외부 프로비저너를 작성하기
 위한 라이브러리가 있다. 일부 외부 프로비저너의 목록은
-[kubernetes-sigs/external-storage](https://github.com/kubernetes-sigs/external-dns) 리포지터리에 있다.
+[kubernetes-sigs/sig-storage-lib-external-provisioner](https://github.com/kubernetes-sigs/sig-storage-lib-external-provisioner) 리포지터리에 있다.
 
 예를 들어, NFS는 내부 프로비저너를 제공하지 않지만, 외부
 프로비저너를 사용할 수 있다. 타사 스토리지 업체가 자체 외부
@@ -143,8 +143,8 @@ CSI | 1.14 (alpha), 1.16 (beta)
 클래스의 `mountOptions` 필드에 지정된 마운트 옵션을 가진다.
 
 만약 볼륨 플러그인이 마운트 옵션을 지원하지 않는데, 마운트
-옵션을 지정하면 프로비저닝은 실패한다. 마운트 옵션은 클래스 또는 PV 에서
-검증되지 않으므로 PV 마운트가 유효하지 않으면 마운트가 실패하게 된다.
+옵션을 지정하면 프로비저닝은 실패한다. 마운트 옵션은 클래스 또는 PV에서
+검증되지 않는다. PV 마운트가 유효하지 않으면, 마운트가 실패하게 된다.
 
 ### 볼륨 바인딩 모드
 
